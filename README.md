@@ -1,8 +1,12 @@
 # lanting-server
 
+### spring (Framework)
+
 ### gradle (Build)
 
 ### mysql (Database)
+
+### mybatis (ORM)
 
 ### redis (Cache)
 
@@ -15,3 +19,5 @@
 ### swagger (API doc)
 
 ### exception handling
+
+### docker/supervisor/pm2/forever (daemonize)
