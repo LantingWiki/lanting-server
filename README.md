@@ -6,7 +6,7 @@
 
 ### mysql (Database)
 
-### mybatis (ORM)
+### mybatis/mybatis-plus (ORM)
 
 ### redis (Cache)
 
