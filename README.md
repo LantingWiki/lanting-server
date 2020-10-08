@@ -1,15 +1,17 @@
 # lanting-server
 
-### mysql
+### gradle (Build)
 
-### redis
+### mysql (Database)
 
-### kafka
+### redis (Cache)
 
-### RPC
+### kafka (Messaging)
 
-### logging
+### dubbo (RPC)
+
+### logback (Logging)
+
+### swagger (API doc)
 
 ### exception handling
-
-### API doc
