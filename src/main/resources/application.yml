@@ -1,0 +1,8 @@
+server:
+  port: 12001
+
+spring:
+  application:
+    name: lanting-server
+  datasource:
+    url: jdbc:mysql://localhost:3306/?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
