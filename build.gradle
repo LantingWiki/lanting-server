@@ -30,6 +30,8 @@ dependencies {
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
+	implementation "io.springfox:springfox-boot-starter:3.0.0"
+	implementation "io.springfox:springfox-swagger-ui:3.0.0"
 
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
