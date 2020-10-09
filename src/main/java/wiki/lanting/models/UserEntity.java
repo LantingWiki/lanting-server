@@ -17,6 +17,9 @@ public class UserEntity {
         this.nickname = nickname;
     }
 
+    public UserEntity() {
+    }
+
     @TableId(type = IdType.AUTO)
     public Long id;
 
