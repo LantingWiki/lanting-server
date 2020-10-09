@@ -1,0 +1,6 @@
+- searcch user by nickname
+- perf 1st user vs perf 900m user
+- profiling - time spent on http request / controller / DB query
+- redis cache
+- logging
+- auth
