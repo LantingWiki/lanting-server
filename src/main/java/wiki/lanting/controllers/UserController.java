@@ -10,6 +10,8 @@ import wiki.lanting.common.LantingResponse;
 import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.UserService;
 
+import java.util.List;
+
 /**
  * @author wang.boyang
  */
@@ -53,6 +55,13 @@ public class UserController {
         return new LantingResponse<Integer>().data(result);
     }
 
+    @PostMapping("/search")
+    public LantingResponse<List<UserEntity>> searchUser(@RequestBody SearchUserRequestBody requestBody) {
+        UserEntity userEntity = new UserEntity(requestBody.nickname);
+        List<UserEntity> result = userService.searchUser(userEntity);
+        return new LantingResponse<List<UserEntity>>().data(result);
+    }
+
     @Data
     private static class ReadUserRequestBody {
         public long id;
@@ -72,5 +81,9 @@ public class UserController {
     @Data
     public static class DeleteUserRequestBody {
         public long id;
+    }
+
+    private static class SearchUserRequestBody {
+        public String nickname;
     }
 }

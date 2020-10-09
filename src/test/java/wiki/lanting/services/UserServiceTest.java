@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import wiki.lanting.models.UserEntity;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -49,5 +51,12 @@ class UserServiceTest {
 
         readUser = userService.readUser(actual.id);
         assertNull(readUser);
+    }
+
+    @Test
+    void searchUserServiceTest() {
+        List<UserEntity> results = userService.searchUser(new UserEntity("Jack"));
+        assertEquals(1, results.size());
+        assertEquals(new UserEntity(10000L, "Jack"), results.get(0));
     }
 }

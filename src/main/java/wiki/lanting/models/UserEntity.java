@@ -17,6 +17,10 @@ public class UserEntity {
         this.nickname = nickname;
     }
 
+    public UserEntity(String nickname) {
+        this.nickname = nickname;
+    }
+
     public UserEntity() {
     }
 

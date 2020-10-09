@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.UserEntity;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author wang.boyang
  */
@@ -54,5 +57,11 @@ public class UserService {
         int result = userMapper.deleteById(id);
         log.info("in updateUser, result: {}, userid: {}", result, id);
         return result;
+    }
+
+    public List<UserEntity> searchUser(UserEntity userEntity) {
+        List<UserEntity> results = userMapper.selectByMap(Map.of("nickname", userEntity.nickname));
+        log.info("in searchUser, results: {}, nickname: {}", results, userEntity.nickname);
+        return results;
     }
 }
