@@ -114,7 +114,7 @@ class UserServiceTest {
 
         while (!toDeleteIds.isEmpty()){
             long tobedeletedId = toDeleteIds.remove(toDeleteIds.size()-1);
-            int i = userService.deleteUser(tobedeletedId);
+            userService.deleteUser(tobedeletedId);
         }
 
         log.info("action done");
