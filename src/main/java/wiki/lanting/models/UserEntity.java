@@ -12,6 +12,11 @@ import lombok.Data;
 @TableName("users")
 public class UserEntity {
 
+    public UserEntity(Long id, String nickname) {
+        this.id = id;
+        this.nickname = nickname;
+    }
+
     @TableId(type = IdType.AUTO)
     public Long id;
 
