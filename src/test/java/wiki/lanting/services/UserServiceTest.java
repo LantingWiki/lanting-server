@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.UserEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,8 +17,6 @@ class UserServiceTest {
 
     @Autowired
     UserService userService;
-    @Autowired
-    UserMapper userMapper;
 
     @BeforeAll
     static void setUp() {
@@ -35,10 +32,9 @@ class UserServiceTest {
     void userServiceTest() {
         UserEntity origUserEntity = new UserEntity(-1L, "test_nickname");
         UserEntity actual = userService.createUser(origUserEntity);
-        log.info("in userServiceTest, actual: {}", actual);
+        assertEquals("test_nickname", actual.nickname);
 
         UserEntity readUser = userService.readUser(actual.id);
-        assertEquals("test_nickname", actual.nickname);
         assertEquals(actual, readUser);
 
         actual.nickname = "test_nickname2";

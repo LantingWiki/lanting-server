@@ -2,6 +2,9 @@ package wiki.lanting.common;
 
 import lombok.Data;
 
+/**
+ * @author wang.boyang
+ */
 @Data
 public class LantingResponse<T> {
     public String status = "success";
