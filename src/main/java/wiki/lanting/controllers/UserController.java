@@ -26,14 +26,31 @@ public class UserController {
 
     @PostMapping("/read")
     public LantingResponse<UserEntity> readUser(@RequestBody ReadUserRequestBody requestBody) {
-        UserEntity user = userService.getUserById(requestBody.id);
+        UserEntity user = userService.readUser(requestBody.id);
         return new LantingResponse<UserEntity>().data(user);
     }
 
     @PostMapping("/create")
     public LantingResponse<UserEntity> createUser(@RequestBody CreateUserRequestBody requestBody) {
-        UserEntity user = userService.createUser(requestBody);
+        UserEntity userEntity = new UserEntity();
+        userEntity.nickname = requestBody.nickname;
+        UserEntity user = userService.createUser(userEntity);
         return new LantingResponse<UserEntity>().data(user);
+    }
+
+    @PostMapping("/update")
+    public LantingResponse<Integer> updateUser(@RequestBody UpdateUserRequestBody requestBody) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.id = requestBody.id;
+        userEntity.nickname = requestBody.nickname;
+        int result = userService.updateUser(userEntity);
+        return new LantingResponse<Integer>().data(result);
+    }
+
+    @PostMapping("/delete")
+    public LantingResponse<Integer> deleteUser(@RequestBody DeleteUserRequestBody requestBody) {
+        int result = userService.deleteUser(requestBody.id);
+        return new LantingResponse<Integer>().data(result);
     }
 
     @Data
@@ -44,5 +61,16 @@ public class UserController {
     @Data
     public static class CreateUserRequestBody {
         public String nickname;
+    }
+
+    @Data
+    public static class UpdateUserRequestBody {
+        public long id;
+        public String nickname;
+    }
+
+    @Data
+    public static class DeleteUserRequestBody {
+        public long id;
     }
 }
