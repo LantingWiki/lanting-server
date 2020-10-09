@@ -10,13 +10,12 @@ import wiki.lanting.models.UserEntity;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.io.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @SpringBootTest
@@ -133,8 +132,30 @@ class UserServiceTest {
 
     @Test
     void searchUserServiceTest() {
-        List<UserEntity> results = userService.searchUser(new UserEntity("Jack"));
-        assertEquals(1, results.size());
-        assertEquals(new UserEntity(10000L, "Jack"), results.get(0));
+        // Crete blank list to collect to delete user IDs when created
+        List <Long> toDeleteIds =  new ArrayList<>();
+        String testName = "UniqueDingDongQiangJohn";
+        UserEntity origUserEntity1 = new UserEntity(-1L, testName);
+        UserEntity john1 = userService.createUser(origUserEntity1);
+        toDeleteIds.add(john1.id);
+        UserEntity origUserEntity2 = new UserEntity(-1L, testName);
+        UserEntity john2 = userService.createUser(origUserEntity2);
+        toDeleteIds.add(john1.id);
+
+
+        List<UserEntity> results = userService.searchUser(new UserEntity(testName));
+
+        assertNotEquals(0,results.size());
+        log.info("result is {}", results );
+        assertEquals(2,results.size());
+
+        //thinking about changes
+        //assertEquals(new UserEntity(502L, testName), results.get(0));
+        assertEquals(testName, results.get(0).nickname);
+
+        while (!toDeleteIds.isEmpty()){
+            long tobedeletedId = toDeleteIds.remove(toDeleteIds.size()-1);
+            userService.deleteUser(tobedeletedId);
+        }
     }
 }
