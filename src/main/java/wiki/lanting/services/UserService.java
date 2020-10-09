@@ -59,6 +59,12 @@ public class UserService {
         return result;
     }
 
+    public int countUser() {
+        int result = userMapper.selectCount(null);
+        log.info("in countUser, result: {}", result);
+        return result;
+    }
+
     public List<UserEntity> searchUser(UserEntity userEntity) {
         List<UserEntity> results = userMapper.selectByMap(Map.of("nickname", userEntity.nickname));
         log.info("in searchUser, results: {}, nickname: {}", results, userEntity.nickname);

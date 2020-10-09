@@ -47,11 +47,18 @@ public class UserController {
         userEntity.nickname = requestBody.nickname;
         int result = userService.updateUser(userEntity);
         return new LantingResponse<Integer>().data(result);
+
     }
 
     @PostMapping("/delete")
     public LantingResponse<Integer> deleteUser(@RequestBody DeleteUserRequestBody requestBody) {
         int result = userService.deleteUser(requestBody.id);
+        return new LantingResponse<Integer>().data(result);
+    }
+
+    @PostMapping("/count")
+    public LantingResponse<Integer> countUser(@RequestBody CountUserRequestBody requestBody) {
+        int result = userService.countUser();
         return new LantingResponse<Integer>().data(result);
     }
 
@@ -83,6 +90,11 @@ public class UserController {
         public long id;
     }
 
+    @Data
+    public static class CountUserRequestBody {
+    }
+
+    @Data
     private static class SearchUserRequestBody {
         public String nickname;
     }
