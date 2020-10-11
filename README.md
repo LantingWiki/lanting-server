@@ -1,14 +1,14 @@
 # lanting-server
 
-### spring (Framework)
+### spring (Framework) [x]
 
-### gradle (Build)
+### gradle (Build) [x]
 
-### mysql (Database)
+### mysql (Database) [x]
 
-### mybatis/mybatis-plus (ORM)
+### mybatis/mybatis-plus (ORM) [x]
 
-### redis (Cache)
+### redis (Cache) [x]
 
 ### kafka (Messaging)
 
@@ -16,7 +16,7 @@
 
 ### logback (Logging)
 
-### swagger (API doc)
+### swagger (API doc) [x]
 
 ### exception handling
 

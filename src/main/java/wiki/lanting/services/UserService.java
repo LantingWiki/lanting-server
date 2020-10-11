@@ -19,7 +19,8 @@ import java.util.Map;
 @Service
 public class UserService {
 
-    final RedisTemplate<String, String> redisTemplate;
+//    final KafkaTemplate<String, Integer> kafkaTemplate;
+final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
 
@@ -38,11 +39,10 @@ public class UserService {
      *   return userEntity;
      *   });
      *   return result.size() > 0 ? result.get(0) : null;
-     */
-    /**
+     *
      * 使用RedisTemplate
-     * Integer test1 = redisTemplate.opsForValue().append("test1", "111");
-     * log.error("test1 {}", test1);
+     *   Integer test1 = redisTemplate.opsForValue().append("test1", "111");
+     *   log.error("test1 {}", test1);
      */
     public UserEntity readUser(long id) {
         UserEntity userEntity = userMapper.selectById(id);
@@ -79,5 +79,10 @@ public class UserService {
         List<UserEntity> results = userMapper.selectByMap(Map.of("nickname", userEntity.nickname));
         log.info("in searchUser, results: {}, nickname: {}", results, userEntity.nickname);
         return results;
+    }
+
+    public Boolean massCreateUser(Integer count) {
+        // send a message to Kafka
+        return null;
     }
 }

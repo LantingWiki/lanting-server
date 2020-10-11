@@ -94,12 +94,12 @@ class UserServiceTest {
         List<Long> toDeleteIds = new ArrayList<>();
         log.info("start adding");
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             int firstNameIndex = rand.nextInt(firstNameLen);
             int secondNameIndex = rand.nextInt(lastNameLen);
             String firstName = first_name.get(firstNameIndex);
             String lastName = last_name.get(secondNameIndex).split(" ")[0];
-            //log.info("Combine Name is {} {}", firstName,lastName);
+            log.info("Combine Name is {} {}", firstName, lastName);
             UserEntity origUserEntity = new UserEntity(null, firstName + " " + lastName);
             UserEntity actual = userService.createUser(origUserEntity);
             toDeleteIds.add(actual.id);

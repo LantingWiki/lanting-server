@@ -69,6 +69,12 @@ public class UserController {
         return new LantingResponse<List<UserEntity>>().data(result);
     }
 
+    @PostMapping("/create/mass")
+    public LantingResponse<Boolean> massCreateUser(@RequestBody Integer count) {
+        Boolean status = userService.massCreateUser(count);
+        return new LantingResponse<Boolean>().data(status);
+    }
+
     @Data
     private static class ReadUserRequestBody {
         public long id;
