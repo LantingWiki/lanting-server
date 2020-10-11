@@ -19,8 +19,7 @@ import java.util.Map;
 @Service
 public class UserService {
 
-//    final KafkaTemplate<String, Integer> kafkaTemplate;
-final RedisTemplate<String, String> redisTemplate;
+    final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
 
