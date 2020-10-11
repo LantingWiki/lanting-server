@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author wang.boyang
  */
 @Data
 @TableName("users")
-public class UserEntity {
+public class UserEntity implements Serializable {
 
     public UserEntity(Long id, String nickname) {
         this.id = id;
