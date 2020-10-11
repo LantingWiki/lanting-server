@@ -8,3 +8,6 @@ spring:
     url: jdbc:mysql://localhost:3306/lanting?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:password}
+  redis:
+    host: ${REDIS_DOMAIN:localhost}
+    port: ${REDIS_PORT:6379}
