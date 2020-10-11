@@ -1,6 +1,7 @@
 package wiki.lanting.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import wiki.lanting.mappers.UserMapper;
@@ -65,6 +66,7 @@ public class UserService {
         return result;
     }
 
+    @Cacheable(value = "wiki.lanting.services.UserService.searchUser", key = "#userEntity.nickname")
     public List<UserEntity> searchUser(UserEntity userEntity) {
         List<UserEntity> results = userMapper.selectByMap(Map.of("nickname", userEntity.nickname));
         log.info("in searchUser, results: {}, nickname: {}", results, userEntity.nickname);
