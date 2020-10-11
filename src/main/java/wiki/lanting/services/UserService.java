@@ -2,6 +2,7 @@ package wiki.lanting.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import wiki.lanting.mappers.UserMapper;
@@ -18,23 +19,30 @@ import java.util.Map;
 @Service
 public class UserService {
 
+    final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
 
-    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper) {
+    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
      * 使用JDBC:
-     * List<UserEntity> result = jdbcTemplate.query("select * from abe.users", (rs, rowNum) -> {
-     * log.info("in row mapper: {} {}", rs, rowNum);
-     * UserEntity userEntity = new UserEntity();
-     * userEntity.id = rs.getLong(1);
-     * return userEntity;
-     * });
-     * return result.size() > 0 ? result.get(0) : null;
+     *   List<UserEntity> result = jdbcTemplate.query("select * from abe.users", (rs, rowNum) -> {
+     *   log.info("in row mapper: {} {}", rs, rowNum);
+     *   UserEntity userEntity = new UserEntity();
+     *   userEntity.id = rs.getLong(1);
+     *   return userEntity;
+     *   });
+     *   return result.size() > 0 ? result.get(0) : null;
+     */
+    /**
+     * 使用RedisTemplate
+     * Integer test1 = redisTemplate.opsForValue().append("test1", "111");
+     * log.error("test1 {}", test1);
      */
     public UserEntity readUser(long id) {
         UserEntity userEntity = userMapper.selectById(id);

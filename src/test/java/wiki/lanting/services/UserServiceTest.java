@@ -3,17 +3,20 @@ package wiki.lanting.services;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import wiki.lanting.models.UserEntity;
 
-import java.util.List;
-
-import java.util.*;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,17 +38,12 @@ class UserServiceTest {
     }
 
 
-    public static List<String> readFileInList(String fileName)
-    {
+    public static List<String> readFileInList(String fileName) {
 
         List<String> lines = Collections.emptyList();
-        try
-        {
+        try {
             lines = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
-        }
-
-        catch (IOException e)
-        {
+        } catch (IOException e) {
 
             // do something
             e.printStackTrace();
@@ -55,7 +53,7 @@ class UserServiceTest {
 
     @Test
     void userServiceTest() {
-        UserEntity origUserEntity = new UserEntity(-1L, "test_nickname");
+        UserEntity origUserEntity = new UserEntity(null, "test_nickname");
         UserEntity actual = userService.createUser(origUserEntity);
         assertEquals("test_nickname", actual.nickname);
 
@@ -78,6 +76,7 @@ class UserServiceTest {
     }
 
     @Test
+    @Disabled
     void massAddRemoveUserServiceTest() {
 
         List<String> first_name = readFileInList("src\\test\\resources\\first_name.txt");
@@ -92,7 +91,7 @@ class UserServiceTest {
         long startTime = System.nanoTime();
 
 
-        List <Long> toDeleteIds =  new ArrayList<>();
+        List<Long> toDeleteIds = new ArrayList<>();
         log.info("start adding");
 
         for (int i = 0; i < 100; i++) {
@@ -101,7 +100,7 @@ class UserServiceTest {
             String firstName = first_name.get(firstNameIndex);
             String lastName = last_name.get(secondNameIndex).split(" ")[0];
             //log.info("Combine Name is {} {}", firstName,lastName);
-            UserEntity origUserEntity = new UserEntity(-1L, firstName+" "+lastName);
+            UserEntity origUserEntity = new UserEntity(null, firstName + " " + lastName);
             UserEntity actual = userService.createUser(origUserEntity);
             toDeleteIds.add(actual.id);
         }
@@ -111,8 +110,8 @@ class UserServiceTest {
         log.info("Current user length: {}", userLengthAltered);
         log.info("start deleting");
 
-        while (!toDeleteIds.isEmpty()){
-            long tobedeletedId = toDeleteIds.remove(toDeleteIds.size()-1);
+        while (!toDeleteIds.isEmpty()) {
+            long tobedeletedId = toDeleteIds.remove(toDeleteIds.size() - 1);
             userService.deleteUser(tobedeletedId);
         }
 
@@ -126,36 +125,50 @@ class UserServiceTest {
 
         long durationAdd = (alteredTime - startTime);
         long durationRemove = (endTime - alteredTime);
-        log.info("Time spend on adding action {} ms", durationAdd/1000000 );
-        log.info("Time spend on removing action {} ms", durationRemove/1000000 );
+        log.info("Time spend on adding action {} ms", durationAdd / 1000000);
+        log.info("Time spend on removing action {} ms", durationRemove / 1000000);
     }
 
     @Test
     void searchUserServiceTest() {
         // Crete blank list to collect to delete user IDs when created
-        List <Long> toDeleteIds =  new ArrayList<>();
+        List<Long> toDeleteIds = new ArrayList<>();
         String testName = "UniqueDingDongQiangJohn";
-        UserEntity origUserEntity1 = new UserEntity(-1L, testName);
+        UserEntity origUserEntity1 = new UserEntity(null, testName);
         UserEntity john1 = userService.createUser(origUserEntity1);
         toDeleteIds.add(john1.id);
-        UserEntity origUserEntity2 = new UserEntity(-1L, testName);
+        UserEntity origUserEntity2 = new UserEntity(null, testName);
         UserEntity john2 = userService.createUser(origUserEntity2);
         toDeleteIds.add(john1.id);
 
-
         List<UserEntity> results = userService.searchUser(new UserEntity(testName));
 
-        assertNotEquals(0,results.size());
-        log.info("result is {}", results );
-        assertEquals(2,results.size());
+        assertNotEquals(0, results.size());
+        log.info("result is {}", results);
+        assertEquals(2, results.size());
 
         //thinking about changes
         //assertEquals(new UserEntity(502L, testName), results.get(0));
         assertEquals(testName, results.get(0).nickname);
 
-        while (!toDeleteIds.isEmpty()){
-            long tobedeletedId = toDeleteIds.remove(toDeleteIds.size()-1);
+        while (!toDeleteIds.isEmpty()) {
+            long tobedeletedId = toDeleteIds.remove(toDeleteIds.size() - 1);
             userService.deleteUser(tobedeletedId);
         }
+    }
+
+    @Test
+    void searchUserWithCacheTest() {
+        UserEntity origUserEntity = new UserEntity(null, "test_nickname");
+        UserEntity created = userService.createUser(origUserEntity);
+        List<UserEntity> found = userService.searchUser(origUserEntity);
+
+        assertEquals(1, found.size());
+        assertEquals("test_nickname", found.get(0).nickname);
+
+        found = userService.searchUser(origUserEntity);
+
+        assertEquals(1, found.size());
+        assertEquals("test_nickname", found.get(0).nickname);
     }
 }
