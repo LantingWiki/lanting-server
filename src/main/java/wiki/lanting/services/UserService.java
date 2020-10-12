@@ -45,7 +45,7 @@ public class UserService {
     public void listen(ConsumerRecord<String, String> cr) throws JsonProcessingException {
         log.info("consumerRecord: {}", cr.toString());
         MassCreateUserMessage massCreateUserMessage = new ObjectMapper().readValue(cr.value(), MassCreateUserMessage.class);
-        //TODO: 创建用户...
+        //TODO: 创建用户, 并更新redis, 减少users to create count
     }
 
     /**
@@ -107,6 +107,7 @@ public class UserService {
             SendResult<String, String> sendResult = send.get();
             log.info("in massCreateUser, sent: {}, metadata: {}",
                     sendResult.getProducerRecord(), sendResult.getRecordMetadata());
+            //TODO: save to redis, we now have X new users to create
             return true;
         } catch (ExecutionException | InterruptedException e) {
             log.error("in massCreateUser", e);
