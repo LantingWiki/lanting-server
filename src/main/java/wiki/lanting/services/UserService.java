@@ -1,5 +1,7 @@
 package wiki.lanting.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -40,8 +42,10 @@ public class UserService {
     }
 
     @KafkaListener(topics = USER_SERVICE_KAFKA_TOPIC)
-    public void listen(ConsumerRecord<?, ?> cr) {
+    public void listen(ConsumerRecord<String, String> cr) throws JsonProcessingException {
         log.info("consumerRecord: {}", cr.toString());
+        MassCreateUserMessage massCreateUserMessage = new ObjectMapper().readValue(cr.value(), MassCreateUserMessage.class);
+        //TODO: 创建用户...
     }
 
     /**
@@ -95,10 +99,10 @@ public class UserService {
         return results;
     }
 
-    public Boolean massCreateUser(Integer count) {
+    public Boolean massCreateUser(Integer count) throws JsonProcessingException {
         // send a message to Kafka
         ListenableFuture<SendResult<String, String>> send = this.template.send(
-                USER_SERVICE_KAFKA_TOPIC, new MassCreateUserMessage(count).toString());
+                USER_SERVICE_KAFKA_TOPIC, new ObjectMapper().writeValueAsString(new MassCreateUserMessage(count)));
         try {
             SendResult<String, String> sendResult = send.get();
             log.info("in massCreateUser, sent: {}, metadata: {}",
