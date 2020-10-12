@@ -12,6 +12,6 @@ spring:
     host: ${REDIS_DOMAIN:localhost}
     port: ${REDIS_PORT:6379}
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_SERVER:172.17.24.188}:9092
+    bootstrap-servers: ${SPRING_KAFKA_SERVER:localhost:9092}
     consumer:
       group-id: lanting-group
