@@ -57,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/count")
-    public LantingResponse<Integer> countUser(@RequestBody CountUserRequestBody requestBody) {
+    public LantingResponse<Integer> countUser() {
         int result = userService.countUser();
         return new LantingResponse<Integer>().data(result);
     }
@@ -70,8 +70,8 @@ public class UserController {
     }
 
     @PostMapping("/create/mass")
-    public LantingResponse<Boolean> massCreateUser(@RequestBody Integer count) {
-        Boolean status = userService.massCreateUser(count);
+    public LantingResponse<Boolean> massCreateUser(@RequestBody MassCreateRequestBody requestBody) {
+        Boolean status = userService.massCreateUser(requestBody.count);
         return new LantingResponse<Boolean>().data(status);
     }
 
@@ -97,11 +97,12 @@ public class UserController {
     }
 
     @Data
-    public static class CountUserRequestBody {
+    private static class SearchUserRequestBody {
+        public String nickname;
     }
 
     @Data
-    private static class SearchUserRequestBody {
-        public String nickname;
+    private static class MassCreateRequestBody {
+        public Integer count;
     }
 }

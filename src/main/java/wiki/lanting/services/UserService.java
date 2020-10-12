@@ -1,15 +1,22 @@
 package wiki.lanting.services;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.UserEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author wang.boyang
@@ -19,14 +26,22 @@ import java.util.Map;
 @Service
 public class UserService {
 
+    public static final String USER_SERVICE_KAFKA_TOPIC = "wiki-lanting-services-UserService";
+    final KafkaTemplate<String, String> template;
     final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
 
-    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate) {
+    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> template) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
+        this.template = template;
+    }
+
+    @KafkaListener(topics = USER_SERVICE_KAFKA_TOPIC)
+    public void listen(ConsumerRecord<?, ?> cr) {
+        log.info("consumerRecord: {}", cr.toString());
     }
 
     /**
@@ -82,6 +97,25 @@ public class UserService {
 
     public Boolean massCreateUser(Integer count) {
         // send a message to Kafka
-        return null;
+        ListenableFuture<SendResult<String, String>> send = this.template.send(
+                USER_SERVICE_KAFKA_TOPIC, new MassCreateUserMessage(count).toString());
+        try {
+            SendResult<String, String> sendResult = send.get();
+            log.info("in massCreateUser, sent: {}, metadata: {}",
+                    sendResult.getProducerRecord(), sendResult.getRecordMetadata());
+            return true;
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("in massCreateUser", e);
+            return false;
+        }
+    }
+
+    @Data
+    private static class MassCreateUserMessage {
+        Integer count;
+
+        public MassCreateUserMessage(Integer count) {
+            this.count = count;
+        }
     }
 }
