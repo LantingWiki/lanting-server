@@ -1,21 +1,29 @@
 package wiki.lanting.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.UserEntity;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -41,11 +49,33 @@ public class UserService {
         this.template = template;
     }
 
-    @KafkaListener(topics = USER_SERVICE_KAFKA_TOPIC)
-    public void listen(ConsumerRecord<String, String> cr) throws JsonProcessingException {
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaManualAckListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(new HashMap<>(8) {{
+            this.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+            this.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+            this.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        }}));
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        return factory;
+    }
+
+    @KafkaListener(topics = USER_SERVICE_KAFKA_TOPIC, containerFactory = "kafkaManualAckListenerContainerFactory", groupId = "lanting-group")
+    public void listen(ConsumerRecord<String, String> cr, Acknowledgment ack) throws JsonProcessingException {
         log.info("consumerRecord: {}", cr.toString());
-        MassCreateUserMessage massCreateUserMessage = new ObjectMapper().readValue(cr.value(), MassCreateUserMessage.class);
+        @SuppressWarnings("Convert2Diamond")
+        List<UserEntity> userEntities = new ObjectMapper().readValue(cr.value(),
+                new TypeReference<List<UserEntity>>() {
+                });
+        //1
         //TODO: 创建用户, 并更新redis, 减少users to create count
+        for (UserEntity u : userEntities) {
+            this.createUser(u);
+        }
+        //2
+        ack.acknowledge();
+        //3
     }
 
     /**
@@ -99,10 +129,10 @@ public class UserService {
         return results;
     }
 
-    public Boolean massCreateUser(Integer count) throws JsonProcessingException {
+    public Boolean massCreateUser(List<UserEntity> userEntities) throws JsonProcessingException {
         // send a message to Kafka
         ListenableFuture<SendResult<String, String>> send = this.template.send(
-                USER_SERVICE_KAFKA_TOPIC, new ObjectMapper().writeValueAsString(new MassCreateUserMessage(count)));
+                USER_SERVICE_KAFKA_TOPIC, new ObjectMapper().writeValueAsString(userEntities));
         try {
             SendResult<String, String> sendResult = send.get();
             log.info("in massCreateUser, sent: {}, metadata: {}",
@@ -112,15 +142,6 @@ public class UserService {
         } catch (ExecutionException | InterruptedException e) {
             log.error("in massCreateUser", e);
             return false;
-        }
-    }
-
-    @Data
-    private static class MassCreateUserMessage {
-        Integer count;
-
-        public MassCreateUserMessage(Integer count) {
-            this.count = count;
         }
     }
 }

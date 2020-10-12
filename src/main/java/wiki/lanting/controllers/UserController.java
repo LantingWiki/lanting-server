@@ -1,5 +1,6 @@
 package wiki.lanting.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.UserService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wang.boyang
@@ -70,8 +72,14 @@ public class UserController {
     }
 
     @PostMapping("/create/mass")
-    public LantingResponse<Boolean> massCreateUser(@RequestBody MassCreateRequestBody requestBody) {
-        Boolean status = userService.massCreateUser(requestBody.count);
+    public LantingResponse<Boolean> massCreateUser(@RequestBody MassCreateRequestBody requestBody) throws JsonProcessingException {
+        List<UserEntity> userEntities = requestBody.createUserRequestBodies.stream().map(createUserRequestBody -> {
+            UserEntity userEntity = new UserEntity();
+            userEntity.nickname = createUserRequestBody.nickname;
+            return userEntity;
+        }).collect(Collectors.toList());
+
+        Boolean status = userService.massCreateUser(userEntities);
         return new LantingResponse<Boolean>().data(status);
     }
 
@@ -103,6 +111,6 @@ public class UserController {
 
     @Data
     private static class MassCreateRequestBody {
-        public Integer count;
+        List<CreateUserRequestBody> createUserRequestBodies;
     }
 }
