@@ -83,6 +83,12 @@ public class UserController {
         return new LantingResponse<Boolean>().data(status);
     }
 
+    @PostMapping("/pendingCreation")
+    public LantingResponse<Integer> checkPendingCreation() {
+        int result = userService.checkPendingCreation();
+        return new LantingResponse<Integer>().data(result);
+    }
+
     @Data
     private static class ReadUserRequestBody {
         public long id;

@@ -68,10 +68,13 @@ public class UserService {
         List<UserEntity> userEntities = new ObjectMapper().readValue(cr.value(),
                 new TypeReference<List<UserEntity>>() {
                 });
-        //1
         //TODO: 创建用户, 并更新redis, 减少users to create count
-        for (UserEntity u : userEntities) {
-            this.createUser(u);
+        int toCreateUserCount = userEntities.size();
+        log.info("total users to create {}", toCreateUserCount);
+        for (int i =0;i<toCreateUserCount;i++) {
+            this.createUser(userEntities.get(i));
+            redisTemplate.opsForValue().set("userPendingCreate", Integer.toString(toCreateUserCount-i-1));
+            log.info("user pending Creation {}", toCreateUserCount-i-1);
         }
         //2
         ack.acknowledge();
@@ -142,6 +145,16 @@ public class UserService {
         } catch (ExecutionException | InterruptedException e) {
             log.error("in massCreateUser", e);
             return false;
+        }
+    }
+
+    public int checkPendingCreation() {
+        String result =  redisTemplate.opsForValue().get("userPendingCreate");
+        log.info("remained users to create: {}", result);
+        if (result!=null){
+            return Integer.parseInt(result);
+        }else {
+            return 0;
         }
     }
 }
