@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import wiki.lanting.models.UserEntity;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,8 +81,15 @@ class UserServiceTest {
     @Disabled
     void massAddRemoveUserServiceTest() {
 
-        List<String> first_name = readFileInList("src\\test\\resources\\first_name.txt");
-        List<String> last_name = readFileInList("src\\test\\resources\\last_name.txt");
+        String separator = File.separator;
+        String filename_first_name = "src/test/resources/first_name.txt";
+        String filename_last_name = "src/test/resources/last_name.txt";
+
+        filename_first_name = filename_first_name.replaceAll("/", Matcher.quoteReplacement(separator));
+        filename_last_name = filename_last_name.replaceAll("/", Matcher.quoteReplacement(separator));
+
+        List<String> first_name = readFileInList(filename_first_name);
+        List<String> last_name = readFileInList(filename_last_name);
 
         int firstNameLen = first_name.size();
         int lastNameLen = last_name.size();
