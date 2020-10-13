@@ -1,5 +1,6 @@
 package wiki.lanting.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -103,7 +104,7 @@ class UserServiceTest {
         List<Long> toDeleteIds = new ArrayList<>();
         log.info("start adding");
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100000; i++) {
             int firstNameIndex = rand.nextInt(firstNameLen);
             int secondNameIndex = rand.nextInt(lastNameLen);
             String firstName = first_name.get(firstNameIndex);
@@ -136,6 +137,58 @@ class UserServiceTest {
         long durationRemove = (endTime - alteredTime);
         log.info("Time spend on adding action {} ms", durationAdd / 1000000);
         log.info("Time spend on removing action {} ms", durationRemove / 1000000);
+    }
+
+
+    @Test
+    @Disabled
+    void massCreateUserAPIServiceTest() throws JsonProcessingException {
+
+        String separator = File.separator;
+        String filename_first_name = "src/test/resources/first_name.txt";
+        String filename_last_name = "src/test/resources/last_name.txt";
+
+        filename_first_name = filename_first_name.replaceAll("/", Matcher.quoteReplacement(separator));
+        filename_last_name = filename_last_name.replaceAll("/", Matcher.quoteReplacement(separator));
+
+        List<String> first_name = readFileInList(filename_first_name);
+        List<String> last_name = readFileInList(filename_last_name);
+
+        int firstNameLen = first_name.size();
+        int lastNameLen = last_name.size();
+        Random rand = new Random();
+
+        int userLengthStart = userService.countUser();
+        log.info("Current user length: {}", userLengthStart);
+        long startTime = System.nanoTime();
+
+
+        List<Long> toDeleteIds = new ArrayList<>();
+        log.info("start adding");
+
+        for (int i = 0; i < 1000; i++) {
+            List<UserEntity> userEntities = new ArrayList<>();
+            for (int j = 0; j < 100; j++) {
+                int firstNameIndex = rand.nextInt(firstNameLen);
+                int secondNameIndex = rand.nextInt(lastNameLen);
+                String firstName = first_name.get(firstNameIndex);
+                String lastName = last_name.get(secondNameIndex).split(" ")[0];
+                UserEntity origUserEntity = new UserEntity(null, firstName + " " + lastName);
+                userEntities.add(origUserEntity);
+            }
+            userService.massCreateUser(userEntities);
+        }
+
+        int pendingCreations = 1;
+        while (pendingCreations!=0){
+            pendingCreations = userService.checkPendingCreation();
+            log.info("Current user length: {}", userLengthStart);
+        }
+
+        long alteredTime = System.nanoTime();
+        long durationAdd = (alteredTime - startTime);
+        log.info("Time spend on adding action {} ms", durationAdd / 1000000);
+
     }
 
     @Test

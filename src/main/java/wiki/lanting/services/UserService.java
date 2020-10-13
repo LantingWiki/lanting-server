@@ -141,6 +141,8 @@ public class UserService {
             log.info("in massCreateUser, sent: {}, metadata: {}",
                     sendResult.getProducerRecord(), sendResult.getRecordMetadata());
             //TODO: save to redis, we now have X new users to create
+            String result =  redisTemplate.opsForValue().get("userPendingCreate");
+            redisTemplate.opsForValue().set("userPendingCreate", Integer.toString(Integer.parseInt(result)+userEntities.size()));
             return true;
         } catch (ExecutionException | InterruptedException e) {
             log.error("in massCreateUser", e);
