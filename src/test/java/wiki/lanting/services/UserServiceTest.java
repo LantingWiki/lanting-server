@@ -141,8 +141,8 @@ class UserServiceTest {
 
 
     @Test
-    @Disabled
-    void massCreateUserAPIServiceTest() throws JsonProcessingException {
+//    @Disabled
+    void massCreateUserAPIServiceTest() throws JsonProcessingException, InterruptedException {
 
         String separator = File.separator;
         String filename_first_name = "src/test/resources/first_name.txt";
@@ -166,7 +166,7 @@ class UserServiceTest {
         List<Long> toDeleteIds = new ArrayList<>();
         log.info("start adding");
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             List<UserEntity> userEntities = new ArrayList<>();
             for (int j = 0; j < 100; j++) {
                 int firstNameIndex = rand.nextInt(firstNameLen);
@@ -179,16 +179,16 @@ class UserServiceTest {
             userService.massCreateUser(userEntities);
         }
 
-        int pendingCreations = 1;
-        while (pendingCreations!=0){
+        int pendingCreations;
+        do {
             pendingCreations = userService.checkPendingCreation();
-            log.info("Current user length: {}", userLengthStart);
-        }
+            log.error("Current user length: {}", pendingCreations);
+            Thread.sleep(2000);
+        } while (pendingCreations > 0);
 
         long alteredTime = System.nanoTime();
         long durationAdd = (alteredTime - startTime);
         log.info("Time spend on adding action {} ms", durationAdd / 1000000);
-
     }
 
     @Test

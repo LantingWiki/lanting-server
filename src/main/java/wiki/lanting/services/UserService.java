@@ -37,12 +37,13 @@ import java.util.concurrent.ExecutionException;
 public class UserService {
 
     public static final String USER_SERVICE_KAFKA_TOPIC = "wiki-lanting-services-UserService";
+    public static final String REDIS_KEY_PENDING_CREATE = "wiki.lanting.services.UserService.userPendingCreate";
     final KafkaTemplate<String, String> template;
     final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
 
-    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> template) {
+    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
@@ -68,32 +69,29 @@ public class UserService {
         List<UserEntity> userEntities = new ObjectMapper().readValue(cr.value(),
                 new TypeReference<List<UserEntity>>() {
                 });
-        //TODO: 创建用户, 并更新redis, 减少users to create count
+
         int toCreateUserCount = userEntities.size();
         log.info("total users to create {}", toCreateUserCount);
-        for (int i =0;i<toCreateUserCount;i++) {
-            this.createUser(userEntities.get(i));
-            redisTemplate.opsForValue().set("userPendingCreate", Integer.toString(toCreateUserCount-i-1));
-            log.info("user pending Creation {}", toCreateUserCount-i-1);
+        for (UserEntity userEntity : userEntities) {
+            this.createUser(userEntity);
+            setPendingCreation(-1);
         }
-        //2
         ack.acknowledge();
-        //3
     }
 
     /**
      * 使用JDBC:
-     *   List<UserEntity> result = jdbcTemplate.query("select * from abe.users", (rs, rowNum) -> {
-     *   log.info("in row mapper: {} {}", rs, rowNum);
-     *   UserEntity userEntity = new UserEntity();
-     *   userEntity.id = rs.getLong(1);
-     *   return userEntity;
-     *   });
-     *   return result.size() > 0 ? result.get(0) : null;
-     *
+     * List<UserEntity> result = jdbcTemplate.query("select * from abe.users", (rs, rowNum) -> {
+     * log.info("in row mapper: {} {}", rs, rowNum);
+     * UserEntity userEntity = new UserEntity();
+     * userEntity.id = rs.getLong(1);
+     * return userEntity;
+     * });
+     * return result.size() > 0 ? result.get(0) : null;
+     * <p>
      * 使用RedisTemplate
-     *   Integer test1 = redisTemplate.opsForValue().append("test1", "111");
-     *   log.error("test1 {}", test1);
+     * Integer test1 = redisTemplate.opsForValue().append("test1", "111");
+     * log.error("test1 {}", test1);
      */
     public UserEntity readUser(long id) {
         UserEntity userEntity = userMapper.selectById(id);
@@ -140,9 +138,7 @@ public class UserService {
             SendResult<String, String> sendResult = send.get();
             log.info("in massCreateUser, sent: {}, metadata: {}",
                     sendResult.getProducerRecord(), sendResult.getRecordMetadata());
-            //TODO: save to redis, we now have X new users to create
-            String result =  redisTemplate.opsForValue().get("userPendingCreate");
-            redisTemplate.opsForValue().set("userPendingCreate", Integer.toString(Integer.parseInt(result)+userEntities.size()));
+            setPendingCreation(userEntities.size());
             return true;
         } catch (ExecutionException | InterruptedException e) {
             log.error("in massCreateUser", e);
@@ -151,12 +147,22 @@ public class UserService {
     }
 
     public int checkPendingCreation() {
-        String result =  redisTemplate.opsForValue().get("userPendingCreate");
+        String result = redisTemplate.opsForValue().get(REDIS_KEY_PENDING_CREATE);
         log.info("remained users to create: {}", result);
-        if (result!=null){
+
+        if (result != null) {
             return Integer.parseInt(result);
-        }else {
+        } else {
             return 0;
+        }
+    }
+
+    public void setPendingCreation(long delta) {
+        // atomic operation
+        if (delta > 0) {
+            redisTemplate.opsForValue().increment(REDIS_KEY_PENDING_CREATE, delta);
+        } else if (delta < 0) {
+            redisTemplate.opsForValue().decrement(REDIS_KEY_PENDING_CREATE, -delta);
         }
     }
 }
