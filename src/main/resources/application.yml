@@ -16,6 +16,10 @@ spring:
     consumer:
       group-id: lanting-group
 
+logging:
+  level:
+    org.apache.kafka.clients: ERROR
+
 lanting:
   secrets:
     wechat_token: ${WECHAT_TOKEN:}

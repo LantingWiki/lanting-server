@@ -49,7 +49,7 @@ public class WechatController {
         if (tmpStr.equals(signature)) {
             return echostr;
         } else {
-            log.error("Wechat signature doesn't match, theirs: {}, ours: {}", signature, tmpStr);
+            log.error("Wechat signature doesn't match, theirs: {}, ours: {}, timestamp: {}, nonce: {}, token: {}", signature, tmpStr, timestamp, nonce, WECHAT_TOKEN);
             return "";
         }
     }
