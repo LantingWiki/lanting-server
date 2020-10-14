@@ -27,3 +27,5 @@ zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-
 ### docker/supervisor/pm2/forever (daemonize)
 
 rsync -arvz --progress ./build/libs/lanting-server-0.0.1-SNAPSHOT.jar root@lanting.wiki:/data/server-apps/lanting-server/
+
+java -jar -DWECHAT_TOKEN=lanting lanting-server-0.0.1-SNAPSHOT.jar
