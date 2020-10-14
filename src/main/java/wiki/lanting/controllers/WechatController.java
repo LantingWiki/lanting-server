@@ -1,11 +1,10 @@
 package wiki.lanting.controllers;
 
-import ch.qos.logback.core.subst.Token;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.MessageDigest;
@@ -22,6 +21,9 @@ import java.util.List;
 @RequestMapping("/api/wechat")
 public class WechatController {
 
+    @Value("${lanting.secrets.wechat_token}")
+    final String WECHAT_TOKEN = "";
+
     static String sha1(String input) throws NoSuchAlgorithmException {
         MessageDigest mDigest = MessageDigest.getInstance("SHA1");
         byte[] result = mDigest.digest(input.getBytes());
@@ -29,34 +31,26 @@ public class WechatController {
         for (byte b : result) {
             sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
         }
-
         return sb.toString();
     }
 
     @PostMapping("/echo")
-    public String echo(@RequestBody WechatController.wechatRequestBody requestBody) throws NoSuchAlgorithmException {
-        //TODO
-        List<String> tmpArr  = new ArrayList<>();
-        String token = System.getenv("WECHAT_TOKEN");
-        tmpArr.add(token);
-        tmpArr.add(requestBody.timestamp);
-        tmpArr.add(requestBody.nonce);
+    public String echo(@RequestParam String signature,
+                       @RequestParam String timestamp,
+                       @RequestParam String nonce,
+                       @RequestParam String echostr) throws NoSuchAlgorithmException {
+        List<String> tmpArr = new ArrayList<>();
+        tmpArr.add(WECHAT_TOKEN);
+        tmpArr.add(timestamp);
+        tmpArr.add(nonce);
         Collections.sort(tmpArr);
-        String tmpStr  = String.join("", tmpArr);
+        String tmpStr = String.join("", tmpArr);
         tmpStr = sha1(tmpStr);
-        if (tmpStr.equals(requestBody.signature)){
-            return requestBody.echostr;
-        }else{
+        if (tmpStr.equals(signature)) {
+            return echostr;
+        } else {
+            log.error("Wechat signature doesn't match, theirs: {}, ours: {}", signature, tmpStr);
             return "";
         }
-
-    }
-
-    @Data
-    private static class wechatRequestBody {
-        public String signature;
-        public String timestamp;
-        public String nonce;
-        public String echostr;
     }
 }

@@ -15,3 +15,7 @@ spring:
     bootstrap-servers: ${SPRING_KAFKA_SERVER:localhost:9092}
     consumer:
       group-id: lanting-group
+
+lanting:
+  secrets:
+    wechat_token: ${WECHAT_TOKEN}

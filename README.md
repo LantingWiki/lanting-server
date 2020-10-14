@@ -22,4 +22,8 @@ zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-
 
 ### exception handling
 
+## deployment
+
 ### docker/supervisor/pm2/forever (daemonize)
+
+
