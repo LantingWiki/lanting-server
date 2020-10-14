@@ -21,8 +21,8 @@ import java.util.List;
 @RequestMapping("/api/wechat")
 public class WechatController {
 
-    @Value("${lanting.secrets.wechat_token}")
-    final String WECHAT_TOKEN = "";
+    @Value("${lanting.secrets.wechat-token}")
+    String wechatToken = "";
 
     static String sha1(String input) throws NoSuchAlgorithmException {
         MessageDigest mDigest = MessageDigest.getInstance("SHA1");
@@ -40,7 +40,7 @@ public class WechatController {
                        @RequestParam String nonce,
                        @RequestParam String echostr) throws NoSuchAlgorithmException {
         List<String> tmpArr = new ArrayList<>();
-        tmpArr.add(WECHAT_TOKEN);
+        tmpArr.add(wechatToken);
         tmpArr.add(timestamp);
         tmpArr.add(nonce);
         Collections.sort(tmpArr);
@@ -49,7 +49,7 @@ public class WechatController {
         if (tmpStr.equals(signature)) {
             return echostr;
         } else {
-            log.error("Wechat signature doesn't match, theirs: {}, ours: {}, timestamp: {}, nonce: {}, token: {}", signature, tmpStr, timestamp, nonce, WECHAT_TOKEN);
+            log.error("Wechat signature doesn't match, theirs: {}, ours: {}, timestamp: {}, nonce: {}, token: {}", signature, tmpStr, timestamp, nonce, wechatToken);
             return "";
         }
     }

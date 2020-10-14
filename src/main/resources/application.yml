@@ -22,4 +22,4 @@ logging:
 
 lanting:
   secrets:
-    wechat_token: ${WECHAT_TOKEN:}
+    wechat-token: ${WECHAT_TOKEN:}
