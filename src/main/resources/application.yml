@@ -18,4 +18,4 @@ spring:
 
 lanting:
   secrets:
-    wechat_token: ${WECHAT_TOKEN}
+    wechat_token: ${WECHAT_TOKEN:}
