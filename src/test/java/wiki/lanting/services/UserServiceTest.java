@@ -166,7 +166,7 @@ class UserServiceTest {
         List<Long> toDeleteIds = new ArrayList<>();
         log.info("start adding");
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             List<UserEntity> userEntities = new ArrayList<>();
             for (int j = 0; j < 100; j++) {
                 int firstNameIndex = rand.nextInt(firstNameLen);
