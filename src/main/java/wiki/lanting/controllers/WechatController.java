@@ -9,7 +9,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import wiki.lanting.common.LantingResponse;
-import wiki.lanting.models.UserEntity;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,7 +42,7 @@ public class WechatController {
         return sb.toString();
     }
 
-    @GetMapping("/echo")
+//    @GetMapping("/echo")
     public String echo(@RequestParam String signature,
                        @RequestParam String timestamp,
                        @RequestParam String nonce,
@@ -63,7 +62,7 @@ public class WechatController {
         }
     }
 
-    @PostMapping("/readPlainMsg")
+    @PostMapping(path = {"/message/receive", "/echo"})
     public LantingResponse<String> readPlainMsg(@RequestBody WechatController.ReadPlainMsgRequestBody requestBody) throws ParserConfigurationException, IOException, SAXException {
         log.info("received xml: {}", requestBody.xml);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
