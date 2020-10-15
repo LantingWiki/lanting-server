@@ -1,5 +1,8 @@
 ## ClipArchive 添加文章工作流
 
+涉及的微信接口: https://developers.weixin.qq.com/doc/offiaccount/Custom_Menus/Creating_Custom-Defined_Menu.html
+自定义菜单, 消息管理, 消息回复A
+
 1. 用户发送一条链接url给公众号. 这会触发 (用户的信息和用户的聊天内容, 微信会转发到我们设定好的接口):
     - 这条链接会被保存, 并生成一条`ClipArchiveRequest`在数据库
     - 公众号去调用另一个我们服务, 这个服务会
