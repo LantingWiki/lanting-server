@@ -3,6 +3,7 @@ package wiki.lanting.controllers;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -62,7 +63,7 @@ public class WechatController {
         }
     }
 
-    @PostMapping(path = {"/message/receive", "/echo"})
+    @PostMapping(path = {"/message/receive", "/echo"}, consumes = {MediaType.APPLICATION_XML_VALUE})
     public LantingResponse<String> readPlainMsg(@RequestBody WechatController.ReadPlainMsgRequestBody requestBody) throws ParserConfigurationException, IOException, SAXException {
         log.info("received xml: {}", requestBody.xml);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
