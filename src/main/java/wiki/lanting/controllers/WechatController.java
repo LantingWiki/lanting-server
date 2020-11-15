@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.xml.sax.SAXException;
 import wiki.lanting.common.LantingResponse;
+import wiki.lanting.services.WechatService;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
@@ -16,12 +17,18 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author wang.boyang
+ * @author boyang.wang
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/wechat")
 public class WechatController {
+
+    final WechatService WechatService;
+
+    public WechatController(WechatService WechatService) {
+        this.WechatService = WechatService;
+    }
 
     @Value("${lanting.secrets.wechat-token}")
     String wechatToken = "";
@@ -57,13 +64,13 @@ public class WechatController {
     }
 
     @PostMapping(path = {"/message/receive", "/echo"}, consumes = {MediaType.TEXT_XML_VALUE})
-    public LantingResponse<String> readPlainMsg(@RequestBody String requestBody) throws ParserConfigurationException, IOException, SAXException {
+    public LantingResponse<String> readPlainMsg(@RequestBody String requestBody) throws ParserConfigurationException, SAXException, IOException {
         log.info("received xml: {}", requestBody);
-//        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//        DocumentBuilder builder = factory.newDocumentBuilder();
-//        Document document = builder.parse(new InputSource(new StringReader(requestBody.xml)));
-//        Element rootElement = document.getDocumentElement();
-        return new LantingResponse<String>().data("");
+        String result = WechatService.initService(requestBody);
+        log.info("Processed result {}", result);
+        return new LantingResponse<String>().data(result);
     }
+
+
 
 }
