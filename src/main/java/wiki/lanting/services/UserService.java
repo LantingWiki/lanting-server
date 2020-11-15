@@ -99,6 +99,10 @@ public class UserService {
         return userEntity;
     }
 
+    public int likeArticle() {
+        return 1;
+    }
+
     public UserEntity createUser(UserEntity userEntity) {
         int insert = userMapper.insert(userEntity);
         log.info("in createUser, user: {}", insert);

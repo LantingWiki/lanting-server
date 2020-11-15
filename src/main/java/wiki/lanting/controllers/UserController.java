@@ -3,17 +3,16 @@ package wiki.lanting.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import wiki.lanting.common.LantingResponse;
 import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
+import wiki.lanting.utils.GetIP;
 /**
  * @author wang.boyang
  */
@@ -61,6 +60,17 @@ public class UserController {
     @PostMapping("/count")
     public LantingResponse<Integer> countUser() {
         int result = userService.countUser();
+        return new LantingResponse<Integer>().data(result);
+    }
+
+    @GetMapping("/like")
+    public LantingResponse<Integer> likeArticle(HttpServletRequest request) {
+        log.info("the request is: {}", request);
+        String clientAddress = GetIP.getClientIp(request);
+        log.info("the clientAddress is: {}", clientAddress);
+        Map<String, String> requestHeadersInMap = GetIP.getRequestHeadersInMap(request);
+        log.info("the requestHeadersInMap is: {}", requestHeadersInMap);
+        int result = userService.likeArticle();
         return new LantingResponse<Integer>().data(result);
     }
 
