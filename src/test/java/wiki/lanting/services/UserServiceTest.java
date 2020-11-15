@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import wiki.lanting.models.LikeArticleEntity;
 import wiki.lanting.models.UserEntity;
 
 import java.io.File;
@@ -15,10 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +29,9 @@ class UserServiceTest {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @BeforeAll
     static void setUp() {
@@ -235,11 +238,37 @@ class UserServiceTest {
     }
 
     @Test
-    void likeArticleTest() {
+    void insertTest() {
         //TODO
         // article id从 10000 到 99999, 一共9万个article
         // 每篇article, 给100个动作. 是like还是dislike, 随机
         // 插入好之后, 再read某个article的like数. 注意不要读第一篇或最后一篇, 随机读
         // 计算一下耗时
+
+        for (long articleId = 10000; articleId < 99999; articleId++) {
+            for (int round = 0; round < 10; round++){
+                if ((articleId-10000)%1000==0){
+                    log.info("updating {}th record",articleId);
+                }
+                boolean like = false;
+                if(Math.random() < 0.5) {
+                    like = true;
+                }
+                String clientId = "127.0.0.1";
+                Long createdAt = System.currentTimeMillis();
+                jdbcTemplate.update("INSERT INTO article_likes(article_id, is_like,client_id,created_at) VALUES(?,?,?,?)", articleId, like,clientId,createdAt);
+            }
+        }
     }
+
+    @Test
+    void likeArticleTest() {
+        long startTime = System.nanoTime();
+
+        long articleId = 42536;
+        Map<Long, Integer> result = userService.readLikeArticle(articleId);
+        long endTime = System.nanoTime();
+        log.info("time spend {} ms",(endTime-startTime)/1000000);
+    }
+
 }
