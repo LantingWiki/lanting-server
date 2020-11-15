@@ -233,4 +233,13 @@ class UserServiceTest {
         assertEquals(1, found.size());
         assertEquals("test_nickname", found.get(0).nickname);
     }
+
+    @Test
+    void likeArticleTest() {
+        //TODO
+        // article id从 10000 到 99999, 一共9万个article
+        // 每篇article, 给100个动作. 是like还是dislike, 随机
+        // 插入好之后, 再read某个article的like数. 注意不要读第一篇或最后一篇, 随机读
+        // 计算一下耗时
+    }
 }
