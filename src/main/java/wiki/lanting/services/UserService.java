@@ -20,7 +20,10 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
+import wiki.lanting.controllers.UserController;
+import wiki.lanting.mappers.LikeArticleMapper;
 import wiki.lanting.mappers.UserMapper;
+import wiki.lanting.models.LikeArticleEntity;
 import wiki.lanting.models.UserEntity;
 
 import java.util.HashMap;
@@ -42,12 +45,14 @@ public class UserService {
     final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
+    final LikeArticleMapper likeArticleMapper;
 
-    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template) {
+    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, LikeArticleMapper likeArticleMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
         this.template = template;
+        this.likeArticleMapper = likeArticleMapper;
     }
 
     @Bean
@@ -99,8 +104,16 @@ public class UserService {
         return userEntity;
     }
 
-    public int likeArticle() {
-        return 1;
+    public UserController.LikeRequestBody likeArticle(UserController.LikeRequestBody likeRequestBody, String clientAddress) {
+        LikeArticleEntity likeArticleEntity = new LikeArticleEntity();
+        likeArticleEntity.articleId = likeRequestBody.articleId;
+        likeArticleEntity.isLike = likeRequestBody.like;
+        likeArticleEntity.clientId = clientAddress;
+        likeArticleEntity.createdAt = System.currentTimeMillis();
+
+        likeArticleMapper.insert(likeArticleEntity);
+
+        return likeRequestBody;
     }
 
     public UserEntity createUser(UserEntity userEntity) {
@@ -168,5 +181,27 @@ public class UserService {
         } else if (delta < 0) {
             redisTemplate.opsForValue().decrement(REDIS_KEY_PENDING_CREATE, -delta);
         }
+    }
+
+    public Map<Long, Integer> readLikeArticle(long articleId) {
+        List<LikeArticleEntity> likeArticleEntities;
+        if (articleId != -1) {
+            likeArticleEntities = likeArticleMapper.selectByMap(Map.of("article_id", articleId));
+        } else {
+            likeArticleEntities = likeArticleMapper.selectList(null);
+        }
+        return getLikeMap(likeArticleEntities);
+    }
+
+    private Map<Long, Integer> getLikeMap(List<LikeArticleEntity> likeArticleEntities) {
+        Map<Long, Integer> likesMap = new HashMap<>();
+        likeArticleEntities.forEach(e -> {
+            Integer curLikes = likesMap.get(e.articleId);
+            if (curLikes == null) {
+                curLikes = 0;
+            }
+            likesMap.put(e.articleId, e.isLike ? curLikes + 1 : curLikes - 1);
+        });
+        return likesMap;
     }
 }

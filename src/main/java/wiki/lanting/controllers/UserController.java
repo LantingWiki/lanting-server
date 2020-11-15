@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import wiki.lanting.common.LantingResponse;
 import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.UserService;
+import wiki.lanting.utils.GetIP;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import wiki.lanting.utils.GetIP;
 /**
  * @author wang.boyang
  */
@@ -63,15 +63,19 @@ public class UserController {
         return new LantingResponse<Integer>().data(result);
     }
 
-    @GetMapping("/like")
-    public LantingResponse<Integer> likeArticle(HttpServletRequest request) {
+    @PostMapping("/like/create")
+    public LantingResponse<LikeRequestBody> createLikeArticle(HttpServletRequest request, @RequestBody LikeRequestBody likeRequestBody) {
         log.info("the request is: {}", request);
         String clientAddress = GetIP.getClientIp(request);
         log.info("the clientAddress is: {}", clientAddress);
-        Map<String, String> requestHeadersInMap = GetIP.getRequestHeadersInMap(request);
-        log.info("the requestHeadersInMap is: {}", requestHeadersInMap);
-        int result = userService.likeArticle();
-        return new LantingResponse<Integer>().data(result);
+        LikeRequestBody result = userService.likeArticle(likeRequestBody, clientAddress);
+        return new LantingResponse<LikeRequestBody>().data(result);
+    }
+
+    @GetMapping("/like/read")
+    public LantingResponse<Map<Long, Integer>> readLikeArticle(@RequestParam long articleId) {
+        Map<Long, Integer> result = userService.readLikeArticle(articleId);
+        return new LantingResponse<Map<Long, Integer>>().data(result);
     }
 
     @PostMapping("/search")
@@ -128,5 +132,11 @@ public class UserController {
     @Data
     private static class MassCreateRequestBody {
         List<CreateUserRequestBody> createUserRequestBodies;
+    }
+
+    @Data
+    public static class LikeRequestBody {
+        public long articleId;
+        public boolean like;
     }
 }
