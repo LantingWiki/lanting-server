@@ -26,9 +26,10 @@ import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.LikeArticleEntity;
 import wiki.lanting.models.UserEntity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.PostConstruct;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -53,6 +54,23 @@ public class UserService {
         this.redisTemplate = redisTemplate;
         this.template = template;
         this.likeArticleMapper = likeArticleMapper;
+    }
+
+    @PostConstruct
+    public void initializer (){
+        log.info("This will be printed; LOG has already been injected");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date dateBeforeDB = new Date();
+        log.info("Time mark before access DB {}",dateFormat.format(dateBeforeDB));
+        List<LikeArticleEntity> likeArticleEntities = likeArticleMapper.selectList(null);
+        Date dateAfterDB = new Date();
+        log.info("Time mark after access DB {}",dateFormat.format(dateAfterDB));
+        Map<String, String> likesMap = getLikeMap(likeArticleEntities);
+        Date dateBeforeLoop = new Date();
+        log.info("Time mark after calc loop {}",dateFormat.format(dateBeforeLoop));
+        redisTemplate.opsForValue().multiSet(likesMap);
+        Date dateAfterLoop = new Date();
+        log.info("Time mark after redis loop {}",dateFormat.format(dateAfterLoop));
     }
 
     @Bean
@@ -112,7 +130,15 @@ public class UserService {
         likeArticleEntity.createdAt = System.currentTimeMillis();
 
         likeArticleMapper.insert(likeArticleEntity);
-
+        long delta;
+        if (likeArticleEntity.isLike) {
+            delta = 1;
+        }else{
+            delta = -1;
+        }
+        redisTemplate.opsForValue().increment("lantingLikes-" +likeArticleEntity.articleId, delta);
+        String result = redisTemplate.opsForValue().get("lantingLikes-" +likeArticleEntity.articleId);
+        log.info("after like the value is {}", result);
         return likeRequestBody;
     }
 
@@ -174,6 +200,7 @@ public class UserService {
         }
     }
 
+
     public void setPendingCreation(long delta) {
         // atomic operation
         if (delta > 0) {
@@ -183,25 +210,47 @@ public class UserService {
         }
     }
 
+
     public Map<Long, Integer> readLikeArticle(long articleId) {
-        List<LikeArticleEntity> likeArticleEntities;
+        Map<Long, Integer> likesResultMap = new HashMap<>();
         if (articleId != -1) {
-            likeArticleEntities = likeArticleMapper.selectByMap(Map.of("article_id", articleId));
+            String lantingKey = "lantingLikes-" + articleId;
+            String result = redisTemplate.opsForValue().get(lantingKey);
+            if (result!=null) {
+                likesResultMap.put(articleId, Integer.valueOf(result));
+            }
         } else {
-            likeArticleEntities = likeArticleMapper.selectList(null);
+            Set<String> redisKeys = redisTemplate.keys("lantingLikes-*");
+            if (redisKeys!=null){
+                List<String> keysList = new ArrayList<>(redisKeys);
+                List<String> valueList = redisTemplate.opsForValue().multiGet(redisKeys);
+                if (valueList!=null){
+                    for (int i = 0; i < keysList.size(); i++) {
+                        String Key = keysList.get(i).substring(13);
+                        likesResultMap.put(Long.valueOf(Key), Integer.valueOf(valueList.get(i)));
+                    }
+                }
+            }
+
         }
-        return getLikeMap(likeArticleEntities);
+        return likesResultMap;
     }
 
-    private Map<Long, Integer> getLikeMap(List<LikeArticleEntity> likeArticleEntities) {
-        Map<Long, Integer> likesMap = new HashMap<>();
+    private Map<String, String> getLikeMap(List<LikeArticleEntity> likeArticleEntities) {
+        Map<String, String> likesMap = new HashMap<>();
         likeArticleEntities.forEach(e -> {
-            Integer curLikes = likesMap.get(e.articleId);
+            String curLikes = likesMap.get(String.valueOf(e.articleId));
+            int curLikesInt;
             if (curLikes == null) {
-                curLikes = 0;
+                curLikesInt = 0;
+            }else{
+                curLikesInt = Integer.parseInt(curLikes);
             }
-            likesMap.put(e.articleId, e.isLike ? curLikes + 1 : curLikes - 1);
+            String lantingKey = "lantingLikes-" + e.articleId;
+            likesMap.put(lantingKey, e.isLike ? String.valueOf(curLikesInt + 1) : String.valueOf(curLikesInt - 1));
         });
         return likesMap;
     }
+
+
 }
