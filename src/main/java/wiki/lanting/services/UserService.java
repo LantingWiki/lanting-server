@@ -20,7 +20,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
-import wiki.lanting.controllers.UserController;
+import wiki.lanting.controllers.ArchiveController;
 import wiki.lanting.mappers.LikeArticleMapper;
 import wiki.lanting.mappers.UserMapper;
 import wiki.lanting.models.LikeArticleEntity;
@@ -122,7 +122,7 @@ public class UserService {
         return userEntity;
     }
 
-    public UserController.LikeRequestBody likeArticle(UserController.LikeRequestBody likeRequestBody, String clientAddress) {
+    public ArchiveController.LikeRequestBody likeArticle(ArchiveController.LikeRequestBody likeRequestBody, String clientAddress) {
         LikeArticleEntity likeArticleEntity = new LikeArticleEntity();
         likeArticleEntity.articleId = likeRequestBody.articleId;
         likeArticleEntity.isLike = likeRequestBody.like;

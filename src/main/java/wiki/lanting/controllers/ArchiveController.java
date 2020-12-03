@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import wiki.lanting.common.LantingResponse;
+import wiki.lanting.models.ArchiveBasicInfoEntity;
+import wiki.lanting.models.ArchiveTributeInfoEntity;
 import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.UserService;
 import wiki.lanting.utils.GetIP;
@@ -18,12 +20,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/user")
-public class UserController {
+@RequestMapping("/api/archive")
+public class ArchiveController {
 
     final UserService userService;
 
-    public UserController(UserService userService) {
+    public ArchiveController(UserService userService) {
         this.userService = userService;
     }
 
@@ -101,6 +103,17 @@ public class UserController {
     public LantingResponse<Integer> checkPendingCreation() {
         int result = userService.checkPendingCreation();
         return new LantingResponse<Integer>().data(result);
+    }
+
+    @PostMapping("/tribute/info")
+    public LantingResponse<ArchiveBasicInfoEntity> tributeArchiveInfo(@RequestBody String link) {
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = new ArchiveBasicInfoEntity();
+        return new LantingResponse<ArchiveBasicInfoEntity>().data(archiveBasicInfoEntity);
+    }
+
+    @PostMapping("/tribute/save")
+    public LantingResponse<Boolean> tributeArchiveTributeInfo(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) {
+        return new LantingResponse<Boolean>().data(true);
     }
 
     @Data
