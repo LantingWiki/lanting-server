@@ -113,7 +113,7 @@ public class ArchiveController {
     }
 
     @PostMapping("/tribute/save")
-    public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) throws IOException, InterruptedException {
+    public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity){
         return userService.tributeArchiveSave(archiveTributeInfoEntity);
     }
 
