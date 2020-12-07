@@ -12,6 +12,7 @@ import wiki.lanting.services.UserService;
 import wiki.lanting.utils.GetIP;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -106,14 +107,14 @@ public class ArchiveController {
     }
 
     @PostMapping("/tribute/info")
-    public LantingResponse<ArchiveBasicInfoEntity> tributeArchiveInfo(@RequestBody String link) {
-        ArchiveBasicInfoEntity archiveBasicInfoEntity = new ArchiveBasicInfoEntity();
+    public LantingResponse<ArchiveBasicInfoEntity> tributeArchiveInfo(@RequestBody String link) throws IOException {
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = userService.tributeArchiveInfo(link);
         return new LantingResponse<ArchiveBasicInfoEntity>().data(archiveBasicInfoEntity);
     }
 
     @PostMapping("/tribute/save")
-    public LantingResponse<Boolean> tributeArchiveTributeInfo(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) {
-        return new LantingResponse<Boolean>().data(true);
+    public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) throws IOException, InterruptedException {
+        return userService.tributeArchiveSave(archiveTributeInfoEntity);
     }
 
     @Data

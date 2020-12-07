@@ -35,6 +35,9 @@ dependencies {
 	implementation "io.springfox:springfox-boot-starter:3.0.0"
 	implementation "io.springfox:springfox-swagger-ui:3.0.0"
 
+	compile group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
+	compile group: 'com.alibaba', name: 'fastjson', version: '1.2.75'
+
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testAnnotationProcessor 'org.projectlombok:lombok'

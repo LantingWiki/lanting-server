@@ -1,5 +1,6 @@
 package wiki.lanting.services;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,17 +26,23 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
+import wiki.lanting.common.LantingResponse;
 import wiki.lanting.controllers.ArchiveController;
 import wiki.lanting.mappers.LikeArticleMapper;
 import wiki.lanting.mappers.UserMapper;
+import wiki.lanting.models.ArchiveBasicInfoEntity;
+import wiki.lanting.models.ArchiveTributeInfoEntity;
 import wiki.lanting.models.LikeArticleEntity;
 import wiki.lanting.models.UserEntity;
 
 import javax.annotation.PostConstruct;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author wang.boyang
@@ -42,11 +54,20 @@ public class UserService {
 
     public static final String USER_SERVICE_KAFKA_TOPIC = "wiki-lanting-services-UserService";
     public static final String REDIS_KEY_PENDING_CREATE = "wiki.lanting.services.UserService.userPendingCreate";
+
+    @Value("${lanting.constants.singlepagepath}")
+    String SINGPLE_PAGE_PATH;
+
+    @Value("${lanting.constants.webdriverpath}")
+    String WEB_DRIVER_PATH;
+
     final KafkaTemplate<String, String> template;
     final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
     final LikeArticleMapper likeArticleMapper;
+
+    boolean isArchving = false;
 
     public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, LikeArticleMapper likeArticleMapper) {
         this.jdbcTemplate = jdbcTemplate;
@@ -57,20 +78,20 @@ public class UserService {
     }
 
     @PostConstruct
-    public void initializer (){
+    public void initializer() {
         log.info("This will be printed; LOG has already been injected");
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date dateBeforeDB = new Date();
-        log.info("Time mark before access DB {}",dateFormat.format(dateBeforeDB));
+        log.info("Time mark before access DB {}", dateFormat.format(dateBeforeDB));
         List<LikeArticleEntity> likeArticleEntities = likeArticleMapper.selectList(null);
         Date dateAfterDB = new Date();
-        log.info("Time mark after access DB {}",dateFormat.format(dateAfterDB));
+        log.info("Time mark after access DB {}", dateFormat.format(dateAfterDB));
         Map<String, String> likesMap = getLikeMap(likeArticleEntities);
         Date dateBeforeLoop = new Date();
-        log.info("Time mark after calc loop {}",dateFormat.format(dateBeforeLoop));
+        log.info("Time mark after calc loop {}", dateFormat.format(dateBeforeLoop));
         redisTemplate.opsForValue().multiSet(likesMap);
         Date dateAfterLoop = new Date();
-        log.info("Time mark after redis loop {}",dateFormat.format(dateAfterLoop));
+        log.info("Time mark after redis loop {}", dateFormat.format(dateAfterLoop));
     }
 
     @Bean
@@ -133,11 +154,11 @@ public class UserService {
         long delta;
         if (likeArticleEntity.isLike) {
             delta = 1;
-        }else{
+        } else {
             delta = -1;
         }
-        redisTemplate.opsForValue().increment("lantingLikes-" +likeArticleEntity.articleId, delta);
-        String result = redisTemplate.opsForValue().get("lantingLikes-" +likeArticleEntity.articleId);
+        redisTemplate.opsForValue().increment("lantingLikes-" + likeArticleEntity.articleId, delta);
+        String result = redisTemplate.opsForValue().get("lantingLikes-" + likeArticleEntity.articleId);
         log.info("after like the value is {}", result);
         return likeRequestBody;
     }
@@ -216,15 +237,15 @@ public class UserService {
         if (articleId != -1) {
             String lantingKey = "lantingLikes-" + articleId;
             String result = redisTemplate.opsForValue().get(lantingKey);
-            if (result!=null) {
+            if (result != null) {
                 likesResultMap.put(articleId, Integer.valueOf(result));
             }
         } else {
             Set<String> redisKeys = redisTemplate.keys("lantingLikes-*");
-            if (redisKeys!=null){
+            if (redisKeys != null) {
                 List<String> keysList = new ArrayList<>(redisKeys);
                 List<String> valueList = redisTemplate.opsForValue().multiGet(redisKeys);
-                if (valueList!=null){
+                if (valueList != null) {
                     for (int i = 0; i < keysList.size(); i++) {
                         String Key = keysList.get(i).substring(13);
                         likesResultMap.put(Long.valueOf(Key), Integer.valueOf(valueList.get(i)));
@@ -243,7 +264,7 @@ public class UserService {
             int curLikesInt;
             if (curLikes == null) {
                 curLikesInt = 0;
-            }else{
+            } else {
                 curLikesInt = Integer.parseInt(curLikes);
             }
             String lantingKey = "lantingLikes-" + e.articleId;
@@ -252,5 +273,80 @@ public class UserService {
         return likesMap;
     }
 
+    public ArchiveBasicInfoEntity tributeArchiveInfo(String link) throws IOException {
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = new ArchiveBasicInfoEntity();
+        Matcher matcher = null;
+        String regex = null;
+        Document doc = Jsoup.connect(link).get();
 
+        Elements title = doc.select(".rich_media_title");
+        archiveBasicInfoEntity.title = title.first().text().strip();
+
+        Elements xPost = doc.select(".original_primary_card_tips");
+        if (xPost.isEmpty()) {
+            Element publisherNode = doc.select("#js_name").first();
+            if (publisherNode != null) {
+                archiveBasicInfoEntity.publisher = publisherNode.text().strip();
+            }
+            Element authorNode = doc.select("span.rich_media_meta.rich_media_meta_text").first();
+            if (authorNode == null) {
+                archiveBasicInfoEntity.author = archiveBasicInfoEntity.publisher;
+            } else {
+                archiveBasicInfoEntity.author = authorNode.text().replace(" ", ", ");
+            }
+        } else {
+            //TODO 转载的情况
+//            regex = "^The following article is from (.*?) Author (.*)$";
+//            matcher = Pattern.compile(regex).matcher(xPost.first().text());
+//            m = xPost.innerText.match(//);
+//            res.author = m[2].split(' ').join(', ');
+//            res.publisher = m[1];
+        }
+
+        String dt = null;
+        regex = ",i=\"(\\d\\d\\d\\d-\\d\\d-\\d\\d)\";";
+        matcher = Pattern.compile(regex).matcher(doc.html());
+        if (matcher.find()) {
+            dt = matcher.group(1).substring(0, 7);
+        }
+        archiveBasicInfoEntity.date = dt;
+        log.info("in tributeArchiveInfo, archiveBasicInfoEntity: {}", archiveBasicInfoEntity);
+        return archiveBasicInfoEntity;
+    }
+
+    public LantingResponse<Boolean> tributeArchiveSave(ArchiveTributeInfoEntity archiveTributeInfoEntity) {
+        if (isArchving) {
+            return new LantingResponse<Boolean>().fail().code("Previous archive hasn't finished").data(false);
+        }
+        isArchving = true;
+
+        try {
+            File tempScript = File.createTempFile("lanting", null);
+            Writer streamWriter = new OutputStreamWriter(new FileOutputStream(
+                    tempScript));
+            PrintWriter printWriter = new PrintWriter(streamWriter);
+            printWriter.println("#!/bin/bash");
+            printWriter.println("cd " + SINGPLE_PAGE_PATH);
+            printWriter.println("cd ../../../");
+            printWriter.println("git pull --rebase");
+            printWriter.println("cd " + SINGPLE_PAGE_PATH);
+            printWriter.println(String.format(
+                    "node single-file.js --noopen=true --web-driver-executable-path='%s' --articleinfo='%s' %s",
+                    WEB_DRIVER_PATH,
+                    JSON.toJSONString(archiveTributeInfoEntity),
+                    archiveTributeInfoEntity.link));
+            printWriter.println("cd ../../../");
+            printWriter.println("npm run archives:add");
+            printWriter.println("git push origin master");
+            printWriter.close();
+            ProcessBuilder pb = new ProcessBuilder("bash", tempScript.toString());
+            pb.inheritIO();
+            Process process = pb.start();
+            process.waitFor();
+        } catch (Exception e) {
+            log.error("intributeArchiveSave", e);
+            return new LantingResponse<Boolean>().error().code(e.getMessage()).data(false);
+        }
+        return new LantingResponse<Boolean>().data(true);
+    }
 }

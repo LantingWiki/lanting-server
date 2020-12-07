@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import wiki.lanting.models.LikeArticleEntity;
+import wiki.lanting.models.ArchiveBasicInfoEntity;
+import wiki.lanting.models.ArchiveTributeInfoEntity;
 import wiki.lanting.models.UserEntity;
 
 import java.io.File;
@@ -271,4 +271,35 @@ class UserServiceTest {
         log.info("time spend {} ms",(endTime-startTime)/1000000);
     }
 
+    @Test
+    void tributeArchiveInfo() throws IOException {
+        String url = "https://mp.weixin.qq.com/s?__biz=MzIwMDkwNDc5Mg==&mid=2247483688&idx=2&sn=b51cda71bc4ca16f2b8bc5fca9322a50&chksm=96f7581fa180d109aeffe827abdd5f9e0bde4e611b8b701b62d08f5ea4e074bbfd1c0a4f8707&scene=21";
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = userService.tributeArchiveInfo(url);
+        assertEquals("浅析「老道消息」写作方法论", archiveBasicInfoEntity.title);
+        assertEquals("三表", archiveBasicInfoEntity.author);
+        assertEquals("三表蛇门阵", archiveBasicInfoEntity.publisher);
+        assertEquals("2017-03", archiveBasicInfoEntity.date);
+
+//        String html = Files.readString(Paths.get("/Users/wang.boyang/Projects/mine/lanting-server/temp.html"));
+//        String regex = ",i=\"(\\d\\d\\d\\d-\\d\\d-\\d\\d)\";";
+//        Matcher matcher = Pattern.compile(regex).matcher(html);
+//        if (matcher.find()) {
+//            log.error(matcher.group(1));
+//        }
+    }
+
+    @Test
+    void tributeArchiveSave() throws IOException, InterruptedException {
+        ArchiveTributeInfoEntity archiveTributeInfoEntity = new ArchiveTributeInfoEntity();
+        archiveTributeInfoEntity.author = "1.1, 1.2";
+        archiveTributeInfoEntity.chapter = "2";
+        archiveTributeInfoEntity.date = "3";
+        archiveTributeInfoEntity.link = "https://mp.weixin.qq.com/s/9huki5pnc8VmHxp1RJSQDQ";
+        archiveTributeInfoEntity.publisher = "4";
+        archiveTributeInfoEntity.remarks = "5";
+        archiveTributeInfoEntity.tag = "6.1, 6.2";
+        archiveTributeInfoEntity.remarks = "7";
+
+        userService.tributeArchiveSave(archiveTributeInfoEntity);
+    }
 }
