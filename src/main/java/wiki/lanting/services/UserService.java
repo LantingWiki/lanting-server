@@ -296,15 +296,14 @@ public class UserService {
             if (authorNode == null) {
                 archiveBasicInfoEntity.author = archiveBasicInfoEntity.publisher;
             } else {
-                archiveBasicInfoEntity.author = authorNode.text().replace(" ", ", ");
+                archiveBasicInfoEntity.author = authorNode.text();
             }
         } else {
-            //TODO 转载的情况
-//            regex = "^The following article is from (.*?) Author (.*)$";
-//            matcher = Pattern.compile(regex).matcher(xPost.first().text());
-//            m = xPost.innerText.match(//);
-//            res.author = m[2].split(' ').join(', ');
-//            res.publisher = m[1];
+            archiveBasicInfoEntity.publisher = doc.select(".original_primary_nickname").text();
+            archiveBasicInfoEntity.author = doc.select("meta[name=author]").attr("content");
+        }
+        if (archiveBasicInfoEntity.author != null) {
+            archiveBasicInfoEntity.author = archiveBasicInfoEntity.author.replaceAll("[ /]", ", ");
         }
 
         String dt = null;
