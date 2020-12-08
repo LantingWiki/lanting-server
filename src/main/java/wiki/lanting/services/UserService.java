@@ -279,6 +279,10 @@ public class UserService {
         String regex = null;
         Document doc = Jsoup.connect(link).get();
 
+//        BufferedWriter writer = new BufferedWriter(new FileWriter("/Users/wang.boyang/Projects/mine/lanting-server/src/main/resources/example-xpost.html"));
+//        writer.write(doc.html());
+//        writer.close();
+
         Elements title = doc.select(".rich_media_title");
         archiveBasicInfoEntity.title = title.first().text().strip();
 
@@ -346,6 +350,8 @@ public class UserService {
         } catch (Exception e) {
             log.error("intributeArchiveSave", e);
             return new LantingResponse<Boolean>().error().code(e.getMessage()).data(false);
+        } finally {
+            isArchving = false;
         }
         return new LantingResponse<Boolean>().data(true);
     }
