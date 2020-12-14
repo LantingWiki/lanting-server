@@ -29,11 +29,9 @@ import org.springframework.util.concurrent.ListenableFuture;
 import wiki.lanting.common.LantingResponse;
 import wiki.lanting.controllers.ArchiveController;
 import wiki.lanting.mappers.LikeArticleMapper;
+import wiki.lanting.mappers.SearchKeywordMapper;
 import wiki.lanting.mappers.UserMapper;
-import wiki.lanting.models.ArchiveBasicInfoEntity;
-import wiki.lanting.models.ArchiveTributeInfoEntity;
-import wiki.lanting.models.LikeArticleEntity;
-import wiki.lanting.models.UserEntity;
+import wiki.lanting.models.*;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -66,15 +64,17 @@ public class ArchiveService {
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
     final LikeArticleMapper likeArticleMapper;
+    final SearchKeywordMapper searchKeywordMapper;
 
     boolean isArchving = false;
 
-    public ArchiveService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, LikeArticleMapper likeArticleMapper) {
+    public ArchiveService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, LikeArticleMapper likeArticleMapper, SearchKeywordMapper searchKeywordMapper, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
         this.template = template;
         this.likeArticleMapper = likeArticleMapper;
+        this.searchKeywordMapper = searchKeywordMapper;
     }
 
     @PostConstruct
@@ -353,5 +353,29 @@ public class ArchiveService {
             isArchving = false;
         }
         return new LantingResponse<Boolean>().data(true);
+    }
+
+    public int searchKeywordCreate(String keyword) {
+        keyword = keyword.strip();
+        List<SearchKeywordEntity> found = searchKeywordMapper.selectByMap(Map.of("keyword", keyword));
+        int result;
+        if (found.size() == 0) {
+            SearchKeywordEntity searchKeywordEntity = new SearchKeywordEntity();
+            searchKeywordEntity.createdAt = System.currentTimeMillis();
+            searchKeywordEntity.updatedAt = searchKeywordEntity.createdAt;
+            searchKeywordEntity.keyword = keyword;
+            searchKeywordEntity.searchCount = 1;
+            result = searchKeywordMapper.insert(searchKeywordEntity);
+        } else {
+            SearchKeywordEntity searchKeywordEntity = found.get(0);
+            searchKeywordEntity.searchCount += 1;
+            searchKeywordEntity.updatedAt = System.currentTimeMillis();
+            result = searchKeywordMapper.updateById(searchKeywordEntity);
+        }
+        return result;
+    }
+
+    public List<SearchKeywordEntity> searchKeywordRead() {
+        return searchKeywordMapper.selectList(null);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import wiki.lanting.common.LantingResponse;
 import wiki.lanting.models.ArchiveBasicInfoEntity;
 import wiki.lanting.models.ArchiveTributeInfoEntity;
+import wiki.lanting.models.SearchKeywordEntity;
 import wiki.lanting.models.UserEntity;
 import wiki.lanting.services.ArchiveService;
 import wiki.lanting.utils.GetIP;
@@ -114,8 +115,20 @@ public class ArchiveController {
     }
 
     @PostMapping("/tribute/save")
-    public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity){
+    public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) {
         return archiveService.tributeArchiveSave(archiveTributeInfoEntity);
+    }
+
+    @PostMapping("/search/keyword/create")
+    public LantingResponse<Integer> searchKeywordCreate(@RequestBody String keyword) {
+        int saved = archiveService.searchKeywordCreate(keyword);
+        return new LantingResponse<Integer>().data(saved);
+    }
+
+    @GetMapping("/search/keyword/read")
+    public LantingResponse<List<SearchKeywordEntity>> searchKeywordRead() {
+        List<SearchKeywordEntity> keywords = archiveService.searchKeywordRead();
+        return new LantingResponse<List<SearchKeywordEntity>>().data(keywords);
     }
 
     @Data

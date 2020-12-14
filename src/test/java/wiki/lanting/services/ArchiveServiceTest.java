@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import wiki.lanting.models.ArchiveBasicInfoEntity;
 import wiki.lanting.models.ArchiveTributeInfoEntity;
+import wiki.lanting.models.SearchKeywordEntity;
 import wiki.lanting.models.UserEntity;
 
 import java.io.File;
@@ -272,7 +273,7 @@ class ArchiveServiceTest {
     }
 
     @Test
-    void tributeArchiveInfo() throws IOException {
+    void tributeArchiveInfoTest() throws IOException {
 //        String url = "https://mp.weixin.qq.com/s?__biz=MzIwMDkwNDc5Mg==&mid=2247483688&idx=2&sn=b51cda71bc4ca16f2b8bc5fca9322a50&chksm=96f7581fa180d109aeffe827abdd5f9e0bde4e611b8b701b62d08f5ea4e074bbfd1c0a4f8707&scene=21";
 //        ArchiveBasicInfoEntity archiveBasicInfoEntity = userService.tributeArchiveInfo(url);
 //        assertEquals("浅析「老道消息」写作方法论", archiveBasicInfoEntity.title);
@@ -296,7 +297,7 @@ class ArchiveServiceTest {
     }
 
     @Test
-    void tributeArchiveSave() {
+    void tributeArchiveSaveTest() {
         ArchiveTributeInfoEntity archiveTributeInfoEntity = new ArchiveTributeInfoEntity();
         archiveTributeInfoEntity.author = "1.1, 1.2";
         archiveTributeInfoEntity.chapter = "2";
@@ -308,5 +309,17 @@ class ArchiveServiceTest {
         archiveTributeInfoEntity.remarks = "7";
 
         archiveService.tributeArchiveSave(archiveTributeInfoEntity);
+    }
+
+    @Test
+    void searchKeywordTest() {
+        assertEquals(1, archiveService.searchKeywordCreate("test1"));
+        List<SearchKeywordEntity> searchKeywordEntities = archiveService.searchKeywordRead();
+        log.info("{}", searchKeywordEntities);
+        assertEquals("test1", searchKeywordEntities.get(0).keyword);
+
+        assertEquals(1, archiveService.searchKeywordCreate("test2"));
+        searchKeywordEntities = archiveService.searchKeywordRead();
+        log.info("{}", searchKeywordEntities);
     }
 }
