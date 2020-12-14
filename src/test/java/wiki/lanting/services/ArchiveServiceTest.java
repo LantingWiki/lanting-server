@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @SpringBootTest
-class UserServiceTest {
+class ArchiveServiceTest {
 
     @Autowired
-    UserService userService;
+    ArchiveService archiveService;
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -60,23 +60,23 @@ class UserServiceTest {
     @Test
     void userServiceTest() {
         UserEntity origUserEntity = new UserEntity(null, "test_nickname");
-        UserEntity actual = userService.createUser(origUserEntity);
+        UserEntity actual = archiveService.createUser(origUserEntity);
         assertEquals("test_nickname", actual.nickname);
 
-        UserEntity readUser = userService.readUser(actual.id);
+        UserEntity readUser = archiveService.readUser(actual.id);
         assertEquals(actual, readUser);
 
         actual.nickname = "test_nickname2";
-        int i = userService.updateUser(actual);
+        int i = archiveService.updateUser(actual);
         assertEquals(1, i);
 
-        readUser = userService.readUser(actual.id);
+        readUser = archiveService.readUser(actual.id);
         assertEquals("test_nickname2", readUser.nickname);
 
-        i = userService.deleteUser(actual.id);
+        i = archiveService.deleteUser(actual.id);
         assertEquals(1, i);
 
-        readUser = userService.readUser(actual.id);
+        readUser = archiveService.readUser(actual.id);
         assertNull(readUser);
 
     }
@@ -99,7 +99,7 @@ class UserServiceTest {
         int lastNameLen = last_name.size();
         Random rand = new Random();
 
-        int userLengthStart = userService.countUser();
+        int userLengthStart = archiveService.countUser();
         log.info("Current user length: {}", userLengthStart);
         long startTime = System.nanoTime();
 
@@ -114,24 +114,24 @@ class UserServiceTest {
             String lastName = last_name.get(secondNameIndex).split(" ")[0];
             log.info("Combine Name is {} {}", firstName, lastName);
             UserEntity origUserEntity = new UserEntity(null, firstName + " " + lastName);
-            UserEntity actual = userService.createUser(origUserEntity);
+            UserEntity actual = archiveService.createUser(origUserEntity);
             toDeleteIds.add(actual.id);
         }
 
         long alteredTime = System.nanoTime();
-        int userLengthAltered = userService.countUser();
+        int userLengthAltered = archiveService.countUser();
         log.info("Current user length: {}", userLengthAltered);
         log.info("start deleting");
 
         while (!toDeleteIds.isEmpty()) {
             long tobedeletedId = toDeleteIds.remove(toDeleteIds.size() - 1);
-            userService.deleteUser(tobedeletedId);
+            archiveService.deleteUser(tobedeletedId);
         }
 
         log.info("action done");
 
         long endTime = System.nanoTime();
-        int userLengthEnd = userService.countUser();
+        int userLengthEnd = archiveService.countUser();
         log.info("Current user length: {}", userLengthEnd);
 
         assertEquals(userLengthStart, userLengthEnd);
@@ -161,7 +161,7 @@ class UserServiceTest {
         int lastNameLen = last_name.size();
         Random rand = new Random();
 
-        int userLengthStart = userService.countUser();
+        int userLengthStart = archiveService.countUser();
         log.info("Current user length: {}", userLengthStart);
         long startTime = System.nanoTime();
 
@@ -179,12 +179,12 @@ class UserServiceTest {
                 UserEntity origUserEntity = new UserEntity(null, firstName + " " + lastName);
                 userEntities.add(origUserEntity);
             }
-            userService.massCreateUser(userEntities);
+            archiveService.massCreateUser(userEntities);
         }
 
         int pendingCreations;
         do {
-            pendingCreations = userService.checkPendingCreation();
+            pendingCreations = archiveService.checkPendingCreation();
             log.error("Current user length: {}", pendingCreations);
             Thread.sleep(2000);
         } while (pendingCreations > 0);
@@ -200,13 +200,13 @@ class UserServiceTest {
         List<Long> toDeleteIds = new ArrayList<>();
         String testName = "UniqueDingDongQiangJohn";
         UserEntity origUserEntity1 = new UserEntity(null, testName);
-        UserEntity john1 = userService.createUser(origUserEntity1);
+        UserEntity john1 = archiveService.createUser(origUserEntity1);
         toDeleteIds.add(john1.id);
         UserEntity origUserEntity2 = new UserEntity(null, testName);
-        UserEntity john2 = userService.createUser(origUserEntity2);
+        UserEntity john2 = archiveService.createUser(origUserEntity2);
         toDeleteIds.add(john1.id);
 
-        List<UserEntity> results = userService.searchUser(new UserEntity(testName));
+        List<UserEntity> results = archiveService.searchUser(new UserEntity(testName));
 
         assertNotEquals(0, results.size());
         log.info("result is {}", results);
@@ -218,20 +218,20 @@ class UserServiceTest {
 
         while (!toDeleteIds.isEmpty()) {
             long tobedeletedId = toDeleteIds.remove(toDeleteIds.size() - 1);
-            userService.deleteUser(tobedeletedId);
+            archiveService.deleteUser(tobedeletedId);
         }
     }
 
     @Test
     void searchUserWithCacheTest() {
         UserEntity origUserEntity = new UserEntity(null, "test_nickname");
-        UserEntity created = userService.createUser(origUserEntity);
-        List<UserEntity> found = userService.searchUser(origUserEntity);
+        UserEntity created = archiveService.createUser(origUserEntity);
+        List<UserEntity> found = archiveService.searchUser(origUserEntity);
 
         assertEquals(1, found.size());
         assertEquals("test_nickname", found.get(0).nickname);
 
-        found = userService.searchUser(origUserEntity);
+        found = archiveService.searchUser(origUserEntity);
 
         assertEquals(1, found.size());
         assertEquals("test_nickname", found.get(0).nickname);
@@ -266,7 +266,7 @@ class UserServiceTest {
         long startTime = System.nanoTime();
 
         long articleId = 42536;
-        Map<Long, Integer> result = userService.readLikeArticle(articleId);
+        Map<Long, Integer> result = archiveService.readLikeArticle(articleId);
         long endTime = System.nanoTime();
         log.info("time spend {} ms",(endTime-startTime)/1000000);
     }
@@ -288,7 +288,7 @@ class UserServiceTest {
 //        }
 
         String url = "https://mp.weixin.qq.com/s/vWekfTVQEafa6-uMvx9ylw";
-        ArchiveBasicInfoEntity archiveBasicInfoEntity = userService.tributeArchiveInfo(url);
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = archiveService.tributeArchiveInfo(url);
         assertEquals("摸着中国过河：越南改革开放简史", archiveBasicInfoEntity.title);
         assertEquals("陈畅, 李健华", archiveBasicInfoEntity.author);
         assertEquals("远川研究所", archiveBasicInfoEntity.publisher);
@@ -296,7 +296,7 @@ class UserServiceTest {
     }
 
     @Test
-    void tributeArchiveSave() throws IOException, InterruptedException {
+    void tributeArchiveSave() {
         ArchiveTributeInfoEntity archiveTributeInfoEntity = new ArchiveTributeInfoEntity();
         archiveTributeInfoEntity.author = "1.1, 1.2";
         archiveTributeInfoEntity.chapter = "2";
@@ -307,6 +307,6 @@ class UserServiceTest {
         archiveTributeInfoEntity.tag = "6.1, 6.2";
         archiveTributeInfoEntity.remarks = "7";
 
-        userService.tributeArchiveSave(archiveTributeInfoEntity);
+        archiveService.tributeArchiveSave(archiveTributeInfoEntity);
     }
 }

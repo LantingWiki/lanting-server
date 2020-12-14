@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-public class UserService {
+public class ArchiveService {
 
     public static final String USER_SERVICE_KAFKA_TOPIC = "wiki-lanting-services-UserService";
     public static final String REDIS_KEY_PENDING_CREATE = "wiki.lanting.services.UserService.userPendingCreate";
@@ -69,7 +69,7 @@ public class UserService {
 
     boolean isArchving = false;
 
-    public UserService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, LikeArticleMapper likeArticleMapper) {
+    public ArchiveService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, LikeArticleMapper likeArticleMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
@@ -275,8 +275,8 @@ public class UserService {
 
     public ArchiveBasicInfoEntity tributeArchiveInfo(String link) throws IOException {
         ArchiveBasicInfoEntity archiveBasicInfoEntity = new ArchiveBasicInfoEntity();
-        Matcher matcher = null;
-        String regex = null;
+        Matcher matcher;
+        String regex;
         Document doc = Jsoup.connect(link).get();
 
 //        BufferedWriter writer = new BufferedWriter(new FileWriter("/Users/wang.boyang/Projects/mine/lanting-server/src/main/resources/example-xpost.html"));
