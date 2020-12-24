@@ -339,6 +339,7 @@ public class ArchiveService {
                     JSON.toJSONString(archiveTributeInfoEntity),
                     archiveTributeInfoEntity.link));
             printWriter.println("cd ../../../");
+            printWriter.println("sleep 3");
             printWriter.println("npm run archives:add");
             printWriter.println("git push origin master");
             printWriter.close();
