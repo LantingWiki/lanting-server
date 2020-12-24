@@ -283,7 +283,7 @@ public class ArchiveService {
 //        writer.write(doc.html());
 //        writer.close();
 
-        Elements title = doc.select(".rich_media_title");
+        Elements title = doc.select("title");
         archiveBasicInfoEntity.title = title.first().text().strip();
 
         Elements xPost = doc.select(".original_primary_card_tips");
