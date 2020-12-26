@@ -274,12 +274,12 @@ class ArchiveServiceTest {
 
     @Test
     void tributeArchiveInfoTest() throws IOException {
-//        String url = "https://mp.weixin.qq.com/s?__biz=MzIwMDkwNDc5Mg==&mid=2247483688&idx=2&sn=b51cda71bc4ca16f2b8bc5fca9322a50&chksm=96f7581fa180d109aeffe827abdd5f9e0bde4e611b8b701b62d08f5ea4e074bbfd1c0a4f8707&scene=21";
-//        ArchiveBasicInfoEntity archiveBasicInfoEntity = userService.tributeArchiveInfo(url);
-//        assertEquals("浅析「老道消息」写作方法论", archiveBasicInfoEntity.title);
-//        assertEquals("三表", archiveBasicInfoEntity.author);
-//        assertEquals("三表蛇门阵", archiveBasicInfoEntity.publisher);
-//        assertEquals("2017-03", archiveBasicInfoEntity.date);
+        String url = "https://mp.weixin.qq.com/s?__biz=MzIwMDkwNDc5Mg==&mid=2247483688&idx=2&sn=b51cda71bc4ca16f2b8bc5fca9322a50&chksm=96f7581fa180d109aeffe827abdd5f9e0bde4e611b8b701b62d08f5ea4e074bbfd1c0a4f8707&scene=21";
+        ArchiveBasicInfoEntity archiveBasicInfoEntity = archiveService.tributeArchiveInfo(url);
+        assertEquals("浅析「老道消息」写作方法论", archiveBasicInfoEntity.title);
+        assertEquals("三表", archiveBasicInfoEntity.author);
+        assertEquals("三表蛇门阵", archiveBasicInfoEntity.publisher);
+        assertEquals("2017-03", archiveBasicInfoEntity.date);
 
 //        String html = Files.readString(Paths.get("/Users/wang.boyang/Projects/mine/lanting-server/temp.html"));
 //        String regex = ",i=\"(\\d\\d\\d\\d-\\d\\d-\\d\\d)\";";
@@ -288,12 +288,16 @@ class ArchiveServiceTest {
 //            log.error(matcher.group(1));
 //        }
 
-        String url = "https://mp.weixin.qq.com/s/vWekfTVQEafa6-uMvx9ylw";
-        ArchiveBasicInfoEntity archiveBasicInfoEntity = archiveService.tributeArchiveInfo(url);
+        url = "https://mp.weixin.qq.com/s/vWekfTVQEafa6-uMvx9ylw";
+        archiveBasicInfoEntity = archiveService.tributeArchiveInfo(url);
         assertEquals("摸着中国过河：越南改革开放简史", archiveBasicInfoEntity.title);
         assertEquals("陈畅, 李健华", archiveBasicInfoEntity.author);
         assertEquals("远川研究所", archiveBasicInfoEntity.publisher);
         assertEquals("2020-12", archiveBasicInfoEntity.date);
+
+        url = "https://www.youtube.com/watch?v=2WhLkLD9P9w";
+        archiveBasicInfoEntity = archiveService.tributeArchiveInfo(url);
+        assertEquals("Speedrunning to have sex in the Fallout series (SPEEDRUN EXPLAINED - World Record) - YouTube", archiveBasicInfoEntity.title);
     }
 
     @Test
