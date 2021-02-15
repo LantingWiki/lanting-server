@@ -6,7 +6,7 @@ CREATE TABLE `archive_authors`
 (
     `archive_id` bigint(20)                        NOT NULL,
     `author`     varchar(60) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
-    PRIMARY KEY (`archive_id`)
+    PRIMARY KEY (`archive_id`, `author`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -16,9 +16,9 @@ CREATE TABLE `archive_authors`
 DROP TABLE IF EXISTS `archive_origs`;
 CREATE TABLE `archive_origs`
 (
-    `archive_id` bigint(20)                 NOT NULL,
-    `orig_link`  text CHARACTER SET utf8mb4 NOT NULL,
-    PRIMARY KEY (`archive_id`)
+    `archive_id` bigint(20)                         NOT NULL,
+    `orig`       varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    PRIMARY KEY (`archive_id`, `orig`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -30,7 +30,7 @@ CREATE TABLE `archive_publishers`
 (
     `archive_id` bigint(20)                        NOT NULL,
     `publisher`  varchar(60) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
-    PRIMARY KEY (`archive_id`)
+    PRIMARY KEY (`archive_id`, `publisher`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -53,8 +53,8 @@ DROP TABLE IF EXISTS `archive_tags`;
 CREATE TABLE `archive_tags`
 (
     `archive_id` bigint(20)                        NOT NULL,
-    `author`     varchar(60) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
-    PRIMARY KEY (`archive_id`)
+    `tag`        varchar(60) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+    PRIMARY KEY (`archive_id`, `tag`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
