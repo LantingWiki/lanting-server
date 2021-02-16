@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import wiki.lanting.common.LantingResponse;
 import wiki.lanting.controllers.ArchiveController;
+import wiki.lanting.mappers.ArchiveMapper;
 import wiki.lanting.mappers.LikeArticleMapper;
 import wiki.lanting.mappers.SearchKeywordMapper;
 import wiki.lanting.mappers.UserMapper;
@@ -63,22 +64,30 @@ public class ArchiveService {
     final RedisTemplate<String, String> redisTemplate;
     final JdbcTemplate jdbcTemplate;
     final UserMapper userMapper;
+    final ArchiveMapper archiveMapper;
     final LikeArticleMapper likeArticleMapper;
     final SearchKeywordMapper searchKeywordMapper;
 
+    CompiledArchivesEntity compiledArchivesEntity = null;
     boolean isArchving = false;
 
-    public ArchiveService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, LikeArticleMapper likeArticleMapper, SearchKeywordMapper searchKeywordMapper, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template) {
+    public ArchiveService(JdbcTemplate jdbcTemplate, UserMapper userMapper, RedisTemplate<String, String> redisTemplate, LikeArticleMapper likeArticleMapper, SearchKeywordMapper searchKeywordMapper, @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, String> template, ArchiveMapper archiveMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
         this.template = template;
         this.likeArticleMapper = likeArticleMapper;
         this.searchKeywordMapper = searchKeywordMapper;
+        this.archiveMapper = archiveMapper;
     }
 
     @PostConstruct
     public void initializer() {
+        initLikes();
+        this.compiledArchivesEntity = initCompiledArchives();
+    }
+
+    public void initLikes() {
         log.info("This will be printed; LOG has already been injected");
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date dateBeforeDB = new Date();
@@ -381,5 +390,55 @@ public class ArchiveService {
 
     public List<SearchKeywordEntity> searchKeywordRead() {
         return searchKeywordMapper.selectList(null);
+    }
+
+    public CompiledArchivesEntity archivesRead() {
+        return this.compiledArchivesEntity;
+    }
+
+    public CompiledArchivesEntity initCompiledArchives() {
+        CompiledArchivesEntity compiledArchivesEntity = new CompiledArchivesEntity();
+
+        List<ArchiveEntity> archiveEntities = archiveMapper.selectList(null);
+        List<Map<String, Object>> origs = jdbcTemplate.queryForList("SELECT * FROM archive_origs");
+        List<Map<String, Object>> authors = jdbcTemplate.queryForList("SELECT * FROM archive_authors");
+        List<Map<String, Object>> tags = jdbcTemplate.queryForList("SELECT * FROM archive_tags");
+        List<Map<String, Object>> publishers = jdbcTemplate.queryForList("SELECT * FROM archive_publishers");
+        List<Map<String, Object>> remarksList = jdbcTemplate.queryForList("SELECT * FROM archive_remarks");
+
+        for (ArchiveEntity archiveEntity : archiveEntities) {
+            FullArchiveEntity fullArchiveEntity = new FullArchiveEntity(archiveEntity);
+            compiledArchivesEntity.archives.put(archiveEntity.id, fullArchiveEntity);
+            fullArchiveEntity.date = fullArchiveEntity.publishYear + "-" + String.format("%02d", fullArchiveEntity.publishMonth);
+        }
+        for (Map<String, Object> publisher : publishers) {
+            Long id = (Long) publisher.get("archive_id");
+            FullArchiveEntity fullArchiveEntity = compiledArchivesEntity.archives.get(id);
+            fullArchiveEntity.publisher = (String) publisher.get("publisher");
+        }
+        for (Map<String, Object> remarks : remarksList) {
+            Long id = (Long) remarks.get("archive_id");
+            FullArchiveEntity fullArchiveEntity = compiledArchivesEntity.archives.get(id);
+            fullArchiveEntity.remarks = (String) remarks.get("remarks");
+        }
+        for (Map<String, Object> orig : origs) {
+            Long id = (Long) orig.get("archive_id");
+            FullArchiveEntity fullArchiveEntity = compiledArchivesEntity.archives.get(id);
+            fullArchiveEntity.origs.add((String) orig.get("orig"));
+        }
+        for (Map<String, Object> author : authors) {
+            Long id = (Long) author.get("archive_id");
+            FullArchiveEntity fullArchiveEntity = compiledArchivesEntity.archives.get(id);
+            fullArchiveEntity.author.add((String) author.get("author"));
+        }
+        for (Map<String, Object> tag : tags) {
+            Long id = (Long) tag.get("archive_id");
+            FullArchiveEntity fullArchiveEntity = compiledArchivesEntity.archives.get(id);
+            fullArchiveEntity.tag.add((String) tag.get("tag"));
+        }
+
+        log.info("inited compiledArchivesEntity {}",
+                compiledArchivesEntity.archives.keySet().size());
+        return compiledArchivesEntity;
     }
 }

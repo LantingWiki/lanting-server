@@ -326,4 +326,9 @@ class ArchiveServiceTest {
         searchKeywordEntities = archiveService.searchKeywordRead();
         log.info("{}", searchKeywordEntities);
     }
+
+    @Test
+    void archivesReadTest() {
+        archiveService.archivesRead();
+    }
 }

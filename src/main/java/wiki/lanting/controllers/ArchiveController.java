@@ -5,10 +5,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import wiki.lanting.common.LantingResponse;
-import wiki.lanting.models.ArchiveBasicInfoEntity;
-import wiki.lanting.models.ArchiveTributeInfoEntity;
-import wiki.lanting.models.SearchKeywordEntity;
-import wiki.lanting.models.UserEntity;
+import wiki.lanting.models.*;
 import wiki.lanting.services.ArchiveService;
 import wiki.lanting.utils.GetIP;
 
@@ -68,21 +65,6 @@ public class ArchiveController {
         return new LantingResponse<Integer>().data(result);
     }
 
-    @PostMapping("/like/create")
-    public LantingResponse<LikeRequestBody> createLikeArticle(HttpServletRequest request, @RequestBody LikeRequestBody likeRequestBody) {
-        log.info("the request is: {}", request);
-        String clientAddress = GetIP.getClientIp(request);
-        log.info("the clientAddress is: {}", clientAddress);
-        LikeRequestBody result = archiveService.likeArticle(likeRequestBody, clientAddress);
-        return new LantingResponse<LikeRequestBody>().data(result);
-    }
-
-    @GetMapping("/like/read")
-    public LantingResponse<Map<Long, Integer>> readLikeArticle(@RequestParam long articleId) {
-        Map<Long, Integer> result = archiveService.readLikeArticle(articleId);
-        return new LantingResponse<Map<Long, Integer>>().data(result);
-    }
-
     @PostMapping("/search")
     public LantingResponse<List<UserEntity>> searchUser(@RequestBody SearchUserRequestBody requestBody) {
         UserEntity userEntity = new UserEntity(requestBody.nickname);
@@ -108,6 +90,15 @@ public class ArchiveController {
         return new LantingResponse<Integer>().data(result);
     }
 
+    /**
+     * actual controllers for archives
+     */
+    @GetMapping("/archives/read")
+    public LantingResponse<CompiledArchivesEntity> archivesRead() {
+        CompiledArchivesEntity compiledArchivesEntity = archiveService.archivesRead();
+        return new LantingResponse<CompiledArchivesEntity>().data(compiledArchivesEntity);
+    }
+
     @PostMapping("/tribute/info")
     public LantingResponse<ArchiveBasicInfoEntity> tributeArchiveInfo(@RequestBody String link) throws IOException {
         ArchiveBasicInfoEntity archiveBasicInfoEntity = archiveService.tributeArchiveInfo(link);
@@ -117,6 +108,21 @@ public class ArchiveController {
     @PostMapping("/tribute/save")
     public LantingResponse<Boolean> tributeArchiveSave(@RequestBody ArchiveTributeInfoEntity archiveTributeInfoEntity) {
         return archiveService.tributeArchiveSave(archiveTributeInfoEntity);
+    }
+
+    @PostMapping("/like/create")
+    public LantingResponse<LikeRequestBody> createLikeArticle(HttpServletRequest request, @RequestBody LikeRequestBody likeRequestBody) {
+        log.info("the request is: {}", request);
+        String clientAddress = GetIP.getClientIp(request);
+        log.info("the clientAddress is: {}", clientAddress);
+        LikeRequestBody result = archiveService.likeArticle(likeRequestBody, clientAddress);
+        return new LantingResponse<LikeRequestBody>().data(result);
+    }
+
+    @GetMapping("/like/read")
+    public LantingResponse<Map<Long, Integer>> readLikeArticle(@RequestParam long articleId) {
+        Map<Long, Integer> result = archiveService.readLikeArticle(articleId);
+        return new LantingResponse<Map<Long, Integer>>().data(result);
     }
 
     @PostMapping("/search/keyword/create")
