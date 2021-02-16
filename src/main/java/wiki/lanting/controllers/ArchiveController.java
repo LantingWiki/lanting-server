@@ -93,7 +93,7 @@ public class ArchiveController {
     /**
      * actual controllers for archives
      */
-    @GetMapping("/archives/read")
+    @GetMapping("/compiled/read")
     public LantingResponse<CompiledArchivesEntity> archivesRead() {
         CompiledArchivesEntity compiledArchivesEntity = archiveService.archivesRead();
         return new LantingResponse<CompiledArchivesEntity>().data(compiledArchivesEntity);
