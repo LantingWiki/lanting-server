@@ -329,6 +329,25 @@ public class ArchiveService {
         return archiveBasicInfoEntity;
     }
 
+    public String generateTempTributeScriptContent(ArchiveTributeInfoEntity archiveTributeInfoEntity) {
+        StringBuilder res = new StringBuilder("#!/bin/bash").append(System.lineSeparator())
+                .append("cd " + SINGPLE_PAGE_PATH).append(System.lineSeparator())
+                .append("cd ../../../").append(System.lineSeparator())
+                .append("git pull --rebase").append(System.lineSeparator())
+                .append("cd " + SINGPLE_PAGE_PATH).append(System.lineSeparator())
+                .append(String.format(
+                        "node single-file.js --noopen=true --web-driver-executable-path='%s' --articleinfo='%s' %s",
+                        WEB_DRIVER_PATH,
+                        JSON.toJSONString(archiveTributeInfoEntity),
+                        archiveTributeInfoEntity.link))
+                .append(System.lineSeparator())
+                .append("cd ../../../").append(System.lineSeparator())
+                .append("sleep 3").append(System.lineSeparator())
+                .append("yarn archives").append(System.lineSeparator())
+                .append("git push origin master").append(System.lineSeparator());
+        return res.toString();
+    }
+
     public LantingResponse<Boolean> tributeArchiveSave(ArchiveTributeInfoEntity archiveTributeInfoEntity) {
         if (isArchving) {
             return new LantingResponse<Boolean>().fail().code("Previous archive hasn't finished").data(false);
@@ -340,21 +359,9 @@ public class ArchiveService {
             Writer streamWriter = new OutputStreamWriter(new FileOutputStream(
                     tempScript));
             PrintWriter printWriter = new PrintWriter(streamWriter);
-            printWriter.println("#!/bin/bash");
-            printWriter.println("cd " + SINGPLE_PAGE_PATH);
-            printWriter.println("cd ../../../");
-            printWriter.println("git pull --rebase");
-            printWriter.println("cd " + SINGPLE_PAGE_PATH);
-            printWriter.println(String.format(
-                    "node single-file.js --noopen=true --web-driver-executable-path='%s' --articleinfo='%s' %s",
-                    WEB_DRIVER_PATH,
-                    JSON.toJSONString(archiveTributeInfoEntity),
-                    archiveTributeInfoEntity.link));
-            printWriter.println("cd ../../../");
-            printWriter.println("sleep 3");
-            printWriter.println("npm run archives:add");
-            printWriter.println("git push origin master");
+            printWriter.print(generateTempTributeScriptContent(archiveTributeInfoEntity));
             printWriter.close();
+
             ProcessBuilder pb = new ProcessBuilder("bash", tempScript.toString());
             pb.inheritIO();
             Process process = pb.start();

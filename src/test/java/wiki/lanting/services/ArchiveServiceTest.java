@@ -300,8 +300,7 @@ class ArchiveServiceTest {
         assertEquals("Speedrunning to have sex in the Fallout series (SPEEDRUN EXPLAINED - World Record) - YouTube", archiveBasicInfoEntity.title);
     }
 
-    @Test
-    void tributeArchiveSaveTest() {
+    private static ArchiveTributeInfoEntity getArchiveTributeInfoEntity() {
         ArchiveTributeInfoEntity archiveTributeInfoEntity = new ArchiveTributeInfoEntity();
         archiveTributeInfoEntity.author = "1.1, 1.2";
         archiveTributeInfoEntity.chapter = "2";
@@ -311,7 +310,19 @@ class ArchiveServiceTest {
         archiveTributeInfoEntity.remarks = "5";
         archiveTributeInfoEntity.tag = "6.1, 6.2";
         archiveTributeInfoEntity.remarks = "7";
+        return archiveTributeInfoEntity;
+    }
 
+    @Test
+    void tributeTempScriptTest() {
+        ArchiveTributeInfoEntity archiveTributeInfoEntity = getArchiveTributeInfoEntity();
+        String s = archiveService.generateTempTributeScriptContent(archiveTributeInfoEntity);
+        System.out.println(s);
+    }
+
+    @Test
+    void tributeArchiveSaveTest() {
+        ArchiveTributeInfoEntity archiveTributeInfoEntity = getArchiveTributeInfoEntity();
         archiveService.tributeArchiveSave(archiveTributeInfoEntity);
     }
 

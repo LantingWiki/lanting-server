@@ -25,4 +25,4 @@ lanting:
     wechat-token: ${WECHAT_TOKEN:}
   constants:
     webdriverpath: ${WEB_DRIVER_PATH:/Users/wang.boyang/Downloads/chromedriver}
-    singlepagepath: ${SINGLE_PAGE_PATH:/Users/wang.boyang/Projects/mine/lanting/server/clipper/cli}
+    singlepagepath: ${SINGLE_PAGE_PATH:/Users/wang.boyang/Notes/Lanting-Florilegium/lanting/scripts/clipper/cli}
