@@ -343,6 +343,7 @@ public class ArchiveService {
                 .append(System.lineSeparator())
                 .append("cd ../../../").append(System.lineSeparator())
                 .append("sleep 3").append(System.lineSeparator())
+                .append("git status").append(System.lineSeparator())
                 .append("yarn archives").append(System.lineSeparator())
                 .append("git push origin master").append(System.lineSeparator());
         return res.toString();
@@ -359,7 +360,9 @@ public class ArchiveService {
             Writer streamWriter = new OutputStreamWriter(new FileOutputStream(
                     tempScript));
             PrintWriter printWriter = new PrintWriter(streamWriter);
-            printWriter.print(generateTempTributeScriptContent(archiveTributeInfoEntity));
+            String generatedTempScript = generateTempTributeScriptContent(archiveTributeInfoEntity);
+            log.info("generatedTempScript {}", generatedTempScript);
+            printWriter.print(generatedTempScript);
             printWriter.close();
 
             ProcessBuilder pb = new ProcessBuilder("bash", tempScript.toString());
